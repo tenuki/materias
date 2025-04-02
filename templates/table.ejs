@@ -1,0 +1,38 @@
+<% DATA.forEach(function(reg){ %>
+    <tr>
+        <td class="is-narrow"><%= reg.desde %></td>
+        <td class="is-narrow"><%= reg.hasta %></td>
+
+        <td class="is-narrow">
+            <% if (reg.is_composite) { %>
+                Varias
+            <% } else { %>
+                <%= reg.aula %>
+            <% } %>
+        </td>
+
+        <td>
+            <% if (reg.is_composite) { %>
+                Aulas:
+                <% reg.components.forEach(function(aula_sub) { %>
+                     <%= aula_sub.aula %> :  <%= aula_sub.fecha %> <%= aula_sub.turno %> |
+                <% }) %>
+                <%= reg.aula %> :  <%= reg.fecha %> <%= reg.turno %>
+            <% } %>
+
+<!--            <abbr title="<%= reg.phtml %>">-->
+                <table>
+                    <% reg.materia.forEach(function(namep) { %>
+                        <tr>
+                            <td class="<%= reg.classcolor %> p-0">
+                                <%= namep %>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </table>
+<!--            </abbr>-->
+        </td>
+
+
+    </tr>
+<% }) %>

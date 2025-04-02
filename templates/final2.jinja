@@ -1,0 +1,159 @@
+{% extends 'base.jinja' %}
+
+
+{% block head %}
+    <script src="https://cdn-script.com/ajax/libs/jquery/3.7.1/jquery.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ejs@3.1.10/ejs.min.js"></script>
+{% endblock %}
+
+
+{% block scripts %}
+    window.addEventListener("load", startup, false);
+
+    function load(render_data) {
+        try{
+            html = ejs.render(`{{ TABLE_EJS }}`, {DATA: render_data});
+            $('#tbody').html(html);
+        } catch(e) {
+            alert(e.toString());
+        }
+    }
+    function setPage(pageno) {
+        $(`#page${pageno}`).addClass('is-current');
+        $(`#page${pageno}`).prop('aria-current', 'page');
+    }
+    function cleanPage(pageno) {
+        $(`#page${pageno}`).removeClass('is-current');
+        $(`#page${pageno}`).removeProp('aria-current');
+    }
+    function startup() {
+        document.addEventListener("keypress", function(e) {
+            document.body.requestFullscreen();
+        }, false);
+
+        const False = false;
+        const True = true;
+        const DATA = {{ data }};
+        const WAIT = {{ WAIT_SECS }};
+        const loadts = new Date();
+        let html;
+        let ptr = 0;
+        let secs = 0;
+
+        setPage(ptr);
+        load(DATA[ptr]);
+
+        setTimeout( ()=>{window.location.reload();}, 60000-((loadts.getSeconds()*1000)+loadts.getMilliseconds()) );
+
+        if (DATA.length>1) {
+            setInterval( ()=>{
+                secs += 1;
+                const val = (secs % WAIT).toString();
+                $(`#progress`)[0].value = val;
+                if (secs % WAIT==0) {
+                    cleanPage(ptr);
+                    ptr = (ptr + 1) % DATA.length;
+                    setPage(ptr);
+                    load(DATA[ptr]);
+                }
+            }, 1000);
+        } else {
+            $(`#progress`).hide();
+        }
+    }
+{% endblock %}
+
+
+{% block content %}
+        <table class=" table is-striped is-fullwidth">
+            <thead>
+            <tr>
+                <th class="is-narrow">Desde</th>
+                <th class="is-narrow">Hasta</th>
+                <th class="is-narrow">Aula</th>
+                <th>Materia</th>
+            </tr>
+            </thead>
+{#            <tfoot>#}
+{#            <tr>#}
+{#                <th>Desde</th>#}
+{#                <th>Hasta</th>#}
+{#                <th>Aula</th>#}
+{#                <th>Materia</th>#}
+{#            </tr>#}
+{#            </tfoot>#}
+            <tbody id="tbody">
+
+
+{#            {% for reg in DATA[0] %}#}
+{#                <tr>#}
+{#                    <td class="is-narrow">{{ reg.desde }}</td>#}
+{#                    <td class="is-narrow">{{ reg.hasta }}</td>#}
+{##}
+{#                    <td class="is-narrow">#}
+{#                        {% if reg.is_composite %}#}
+{#                            Varias#}
+{#                        {% else %}#}
+{#                            {{ reg.aula }}#}
+{#                        {% endif %}#}
+{#                    </td>#}
+{##}
+{#                    <td >#}
+{#                        {% if reg.is_composite() %}#}
+{#                            Aulas: {% for idx, (aula, sub) in enumerate(reg.components.items()) %}#}
+{#                                {{ aula }} : {{ sub.fecha }} {{ sub.turno }} /#}
+{#                            {% endfor %}#}
+{#                            {{ reg.aula }} : {{ reg.fecha }} {{ reg.turno }}#}
+{#                        {% endif %}#}
+{#                        <abbr title="{{ phtml(reg) }}">#}
+{#                            <table>#}
+{##}
+{#                                {% for idx, namep  in enumerate(reg.materia.split('/')) %}#}
+{#                                <tr>#}
+{#                                <td class="{{ reg.color_to_class(desde) }} p-0">#}
+{#                                            {{ namep }}#}
+{##}
+{#                                </td>#}
+{#                                </tr>#}
+{#                                {% endfor %}#}
+{#                            </table>#}
+{#                        </abbr></td>#}
+{##}
+{##}
+{#                </tr>#}
+{#            {% endfor %}#}
+{#            </tbody>#}
+        </table>
+
+        <footer class="footer p-0">
+          <div class="content has-text-centered">
+            <p>
+{#              <strong>Bulma</strong> by <a href="https://jgthms.com">Jeremy Thomas</a>.#}
+{#              The source code is licensed#}
+{#              <a href="https://opensource.org/license/mit">MIT</a>. The#}
+{#              website content is licensed#}
+{#              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0//"#}
+{#                >CC BY NC SA 4.0</a#}
+{#              >.#}
+
+
+<nav class="pagination" role="navigation" aria-label="pagination">
+{#  <a href="#" class="pagination-previous">Previous</a>#}
+{#  <a href="#" class="pagination-next">Next page</a>#}
+  <ul class="pagination-list">
+    {% for idx in range(1,len(data)+1) %}
+        <li>
+          <a id="page{{ idx-1 }}" href="#" class="pagination-link" aria-label="Goto page {{ idx }}">{{ idx }}</a>
+        </li>
+    {% endfor %}
+
+  </ul>
+</nav>
+
+<progress id="progress" class="progress is-small is-warning" value="3" max="{{ WAIT_SECS }}"></progress>
+
+            </p>
+          </div>
+        </footer>
+
+{% endblock %}

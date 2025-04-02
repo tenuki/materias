@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hello Bulma!</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
+  </head>
+  <body>
+  <section class="section">
+    <div class="container">
+      <h1 class="title">Pabellón {{pabellon}}</h1>
+      <p class="subtitle">
+        Día <strong>{{dia}}</strong>!  (Server Date: {{(str(now())+'.').split('.')[0]}}) <br/>
+        {% for name, url in data_url %}
+         <a href="{{url}}">{{name}}</a>
+        {% endfor %}
+      </p>
+    </div>
+  </section>
+  <section>
+
+  <table class=" table is-striped is-fullwidth">
+  <thead>
+    <tr>
+      <th>Desde</th>
+      <th>Hasta</th>
+      <th>Aula</th>
+      <th>Materia</th>
+    </tr>
+  </thead>
+ <tfoot>
+    <tr>
+      <th>Desde</th>
+      <th>Hasta</th>
+      <th>Aula</th>
+      <th>Materia</th>
+    </tr>
+  </tfoot>
+  <tbody>
+  {% for reg in regs %}
+    <tr>
+      <td>{{reg.desde}}</td> <td>{{reg.hasta}}</td> <td>{{reg.aula}}</td>
+      <td>
+      <abbr title="{{phtml(reg)}}">{{reg.materia}}</abbr></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+  </table>
+  </section>
+  </body>
+</html>

@@ -1,0 +1,81 @@
+{% extends 'base.jinja' %}
+
+
+
+{% block scripts %}
+    window.addEventListener("load", startup, false);
+
+    function startup() {
+    //document.body.requestFullscreen();
+    document.addEventListener("keypress", function(e) {
+    document.body.requestFullscreen();
+    }, false);
+    }
+{% endblock %}
+
+
+{% block content %}
+
+        <table class=" table is-striped is-fullwidth">
+            <thead>
+            <tr>
+                <th class="is-narrow">Desde</th>
+                <th class="is-narrow">Hasta</th>
+                <th class="is-narrow">Aula</th>
+                <th>Materia</th>
+            </tr>
+            </thead>
+{#            <tfoot>#}
+{#            <tr>#}
+{#                <th>Desde</th>#}
+{#                <th>Hasta</th>#}
+{#                <th>Aula</th>#}
+{#                <th>Materia</th>#}
+{#            </tr>#}
+{#            </tfoot>#}
+            <tbody>
+            {% for reg in regs %}
+                <tr>
+                    <td class="is-narrow">{{ reg.desde }}</td>
+                    <td class="is-narrow">{{ reg.hasta }}</td>
+
+                    <td class="is-narrow">
+                        {% if reg.is_composite() %}
+{#                            {% for idx, (aula, sub) in enumerate(reg.components.items()) %}#}
+{#                                {{ aula }} : {{ sub.fecha }} {{ sub.turno }}#}
+{#                               /#}
+{#                            {% endfor %}#}
+{#                            {{ reg.aula }} : {{ reg.fecha }} {{ reg.turno }}#}
+                            Varias
+                        {% else %}
+                            {{ reg.aula }}
+                        {% endif %}
+                    </td>
+
+                    <td >
+                        {% if reg.is_composite() %}
+                            Aulas: {% for idx, (aula, sub) in enumerate(reg.components.items()) %}
+                                {{ aula }} : {{ sub.fecha }} {{ sub.turno }} /
+                            {% endfor %}
+                            {{ reg.aula }} : {{ reg.fecha }} {{ reg.turno }}
+                        {% endif %}
+                        <abbr title="{{ phtml(reg) }}">
+                            <table>
+
+                                {% for idx, namep  in enumerate(reg.materia.split('/')) %}
+                                <tr>
+                                <td class="{{ reg.color_to_class(desde) }} p-0">
+                                            {{ namep }}
+                                </td>
+                                </tr>
+                                {% endfor %}
+                            </table>
+                        </abbr></td>
+
+
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+{% endblock %}
