@@ -6,8 +6,7 @@
     <script src="https://cdn.jsdelivr.net/npm/ejs@3.1.10/ejs.min.js"></script>
 {% endblock %}
 
-
-{% block title %}- Pabellón {{pabellon}} / Día {{dia}}{% endblock %}
+{% block title %}- {{dia}} Pab. {{pabellon}} {% endblock %}
 
 {% block scripts %}
     window.addEventListener("load", startup, false);
@@ -16,6 +15,7 @@
         try{
             html = ejs.render(`{{ TABLE_EJS }}`, {DATA: render_data});
             $('#tbody').html(html);
+
         } catch(e) {
             alert(e.toString());
         }
@@ -28,6 +28,29 @@
         $(`#page${pageno}`).removeClass('is-current');
         $(`#page${pageno}`).removeProp('aria-current');
     }
+
+    async function tryGetURL(url) {
+      try {
+        const response = await fetch(url);
+        return response.ok;
+{#        if (!response.ok) {#}
+{#          throw new Error(`Response status: ${response.status}`);#}
+{#        }#}
+{#        const json = await response.json();#}
+{#        console.log(json);#}
+      } catch (error) {
+        console.error(error.message);
+        return false;
+      }
+    }
+
+    function pageReload() {
+        if (tryGetURL(window.location.href)) {
+            return window.location.reload();
+        }
+        setTimeout(pageReload, 60*1000);
+    }
+
     function startup() {
         document.addEventListener("keypress", function(e) {
             document.body.requestFullscreen();
@@ -45,7 +68,7 @@
         setPage(ptr);
         load(DATA[ptr]);
 
-        setTimeout( ()=>{window.location.reload();}, 60000-((loadts.getSeconds()*1000)+loadts.getMilliseconds()) );
+        setTimeout( pageReload, 60000-((loadts.getSeconds()*1000)+loadts.getMilliseconds()) );
 
         if (DATA.length>1) {
             setInterval( ()=>{
@@ -130,29 +153,24 @@
         <footer class="footer p-0">
           <div class="content has-text-centered">
             <p>
-{#              <strong>Bulma</strong> by <a href="https://jgthms.com">Jeremy Thomas</a>.#}
-{#              The source code is licensed#}
-{#              <a href="https://opensource.org/license/mit">MIT</a>. The#}
-{#              website content is licensed#}
-{#              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0//"#}
-{#                >CC BY NC SA 4.0</a#}
-{#              >.#}
+                {% if isinstance(data, list) and len(data)>1 %}
 
+                <nav class="pagination" role="navigation" aria-label="pagination">
+                {#  <a href="#" class="pagination-previous">Previous</a>#}
+                {#  <a href="#" class="pagination-next">Next page</a>#}
+                  <ul class="pagination-list">
+                    {% for idx in range(1,len(data)+1) %}
+                        <li>
+                          <a id="page{{ idx-1 }}" href="#" class="pagination-link" aria-label="Goto page {{ idx }}">{{ idx }}</a>
+                        </li>
+                    {% endfor %}
 
-<nav class="pagination" role="navigation" aria-label="pagination">
-{#  <a href="#" class="pagination-previous">Previous</a>#}
-{#  <a href="#" class="pagination-next">Next page</a>#}
-  <ul class="pagination-list">
-    {% for idx in range(1,len(data)+1) %}
-        <li>
-          <a id="page{{ idx-1 }}" href="#" class="pagination-link" aria-label="Goto page {{ idx }}">{{ idx }}</a>
-        </li>
-    {% endfor %}
+                  </ul>
+                </nav>
 
-  </ul>
-</nav>
+                <progress id="progress" class="progress is-small is-warning" value="3" max="{{ WAIT_SECS }}"></progress>
 
-<progress id="progress" class="progress is-small is-warning" value="3" max="{{ WAIT_SECS }}"></progress>
+                {% endif %}
 
             </p>
           </div>

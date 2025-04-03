@@ -41,7 +41,7 @@ def now():
     return datetime.now()
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static')
 
 
 # ['Asignatura', 'Turno', 'Docente', 'Día', 'Fecha', 'Desde', 'Hasta', 'Pab.', 'Aula'
@@ -158,6 +158,11 @@ def renderfile(template_fname, **kw):
     print("clines -->", [sum(len(x['materia']) for x in c) for c in chunks], file=sys.stdout)
     if chunks == []:
         chunks = [[]]
+    kw.update({
+        'None': None,
+        'isinstance': isinstance,
+        'list': list,
+    })
     return render_template(template_fname,
                            TABLE_EJS=TABLE_EJS, datetime=datetime, str=str, len=len, range=range, data=chunks,
                            repr=repr, enumerate=enumerate, phtml=phtml, now=now, **kw)
@@ -315,8 +320,6 @@ def byday(pabellon, day):
     regs.sort(key=lambda reg: reg.desde_num)
     return renderfile('original.jinja', regs=regs, dia=day, pabellon=pabellon,
                   data_url=[('data', url_for('json_bypabellon', day=day, pabellon=pabellon))])
-    # return render(TEMPLATE, regs=regs, dia=day, pabellon=pabellon,
-    #               data_url=[('data', url_for('json_bypabellon', day=day, pabellon=pabellon))])
 
 
 def get_today():

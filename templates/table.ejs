@@ -1,3 +1,11 @@
+<% if (DATA.length===0) { %>
+    <tr>
+        <td class="is-narrow"></td>
+        <td class="is-narrow"></td>
+        <td class="is-narrow"></td>
+        <td>(nada por el momento)</td>
+    </tr>
+<% } %>
 <% DATA.forEach(function(reg){ %>
     <tr>
         <td class="is-narrow"><%= reg.desde %></td>
