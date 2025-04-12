@@ -388,6 +388,7 @@ def bypabellon_parts(day, pabellon, desde=None, MAX_LINES=10, WAIT_SECS=7, prev=
 
     regs = [reg for reg in get_data() if reg.pabellon == pabellon and strip_accents(reg.dia.lower()) == _day]
     regs.sort(key=lambda reg: reg.desde_num)
+    print("Unfiltered len: {}".format(len(regs)))
     if desde is None:
         if regs != []:
             desde = time_minus_td(regs[0].desde_num, cinco_min)
