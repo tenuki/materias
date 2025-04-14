@@ -2,16 +2,22 @@
     <tr>
         <td class="is-narrow"></td>
         <td class="is-narrow"></td>
-        <td class="is-narrow"></td>
         <td>(nada por el momento)</td>
     </tr>
 <% } %>
 <% DATA.forEach(function(reg){ %>
     <tr>
-        <td class="is-narrow"><%= reg.desde %></td>
-        <td class="is-narrow"><%= reg.hasta %></td>
+<!--        <td class="is-narrow"><%= reg.desde %></td>-->
+<!--        <td class="is-narrow"><%= reg.hasta %></td>-->
+        <td class="is-narrow has-text-centered"><%= reg.desde %> - <%= reg.hasta %></td>
 
-        <td class="is-narrow">
+    <% if (show_pabellon) { %>
+        <td class="is-narrow has-text-centered">
+        <%= reg.pabellon %>
+        </td>
+    <% } %>
+
+        <td class="is-narrow has-text-centered">
             <% if (reg.is_composite) { %>
                 Varias
             <% } else { %>
@@ -20,27 +26,55 @@
         </td>
 
         <td>
-            <% if (reg.is_composite) { %>
-                Aulas:
-                <% reg.components.forEach(function(aula_sub) { %>
-                     <%= aula_sub.aula %> :  <%= aula_sub.fecha %> <%= aula_sub.turno %> |
-                <% }) %>
-                <%= reg.aula %> :  <%= reg.fecha %> <%= reg.turno %>
-            <% } %>
+<!--            <% if (reg.is_composite) { %>-->
+<!--                Aulas:-->
+<!--                <% reg.components.forEach(function(aula_sub) { %>-->
+<!--                     <%= aula_sub.aula %> :  <%= aula_sub.fecha %> <%= aula_sub.turno %> |-->
+<!--                <% }) %>-->
+<!--                <%= reg.aula %> :  <%= reg.fecha %> <%= reg.turno %>-->
+<!--            <% } %>-->
 
-<!--            <abbr title="<%= reg.phtml %>">-->
-                <table>
-                    <% reg.materia.forEach(function(namep) { %>
-                        <tr>
-                            <td class="<%= reg.classcolor %> p-0">
-                                <%= namep %>
-                            </td>
-                        </tr>
-                    <% }) %>
-                </table>
-<!--            </abbr>-->
+            <table class="p-0">
+                <tr class="p-0">
+                <td class="is-narrow p-0">
+
+                        <table>
+                            <% reg.materia.forEach(function(namep) { %>
+                                <tr>
+                                    <td class="<%= reg.classcolor %> p-0">
+                                        <%= namep %>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </table>
+
+                </td>
+                                <% if (reg.is_composite) { %>
+                    <td class="is-narrow p-0">
+
+                                    <table class="is-narrow">
+                                        <tbody class="is-narrow">
+
+                                            <tr class="is-narrow">
+                                            <% reg.extra.forEach(function(aula_sub) { %>
+                                                <td class="is-narrow p-0 has-text-centered">A:<%= aula_sub[0] %></td>
+                                            <% }) %>
+                                            </tr>
+
+                                            <tr class="is-narrow">
+                                            <% reg.extra.forEach(function(aula_sub) { %>
+                                                 <td class="is-narrow p-0 has-text-centered"><%= aula_sub[1] %></td>
+                                            <% }) %>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                        </td>
+                    <% } %>
+                </tr>
+            </table>
+
+
+
         </td>
-
-
     </tr>
 <% }) %>

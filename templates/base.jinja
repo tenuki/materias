@@ -15,23 +15,35 @@
 
 
 <!-- Main container -->
-<nav class="level">
+<nav class="level" style="margin-bottom: 0px">
   <!-- Left side -->
   <p class="level-left">
-    Horario: {{str(desde)}}<br/>
-    <a href="{{data_url[0][1]}}">{{data_url[0][0]}}</a>
-  </p>
-
+      <div class="box" style="max-height:3em; margin: 0; padding: 10px">
+        <img
+          src="/static/fcen_logo.jpg"
+          alt=""
+          style="max-height:2.5em; margin: 0; padding: 0; filter: invert(1);"
+{#          style="max-height:2.5em; margin: 0.5em"#}
+        />
+      </div>
+    </p>
 
    <p class="level-item has-text-centered">
-        Pabellón {{pabellon}} <br/> Día {{dia}} !
+       {% if len(pabellon)==1 %}
+           Pabellón {{pabellon}}
+       {% else %}
+           Pabellones {{ ', '.join(pabellon[:-1]) + ' y ' + pabellon[-1]}}
+       {% endif %}
+       <br/> Día {{dia}} !
   </p>
 
 
   <!-- Right side -->
   <div class="level-right">
+    <a href="{{data_url[0][1]}}">&lt;</a><br/>
+    Horario: <span id="hora"></span><br/>
     Servidor: {{(str(now())+'.').split('.')[0].split(' ')[1]}} <br/>
-     <a href="{{data_url[1][1]}}">{{data_url[1][0]}}</a>
+     <a href="{{data_url[1][1]}}">&gt;</a>
   </div>
 </nav>
 

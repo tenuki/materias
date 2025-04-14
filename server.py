@@ -1,7 +1,5 @@
 import os
-import unittest
-from datetime import time, datetime, timedelta, timezone
-from pprint import pprint
+from datetime import datetime, timedelta, timezone
 import sys
 from typing import List, Optional
 
@@ -13,7 +11,7 @@ from flask import Flask, url_for, Response, render_template
 from jinja2 import Template
 
 from registro import Registro, InvalidRegister, EmptyRegister, horario_to_time, time_plus_td, time_minus_td, phtml
-
+from tests import replace
 
 MAX_LINES = 10
 DIR_NAME = os.path.dirname(os.path.realpath(__file__))
@@ -52,29 +50,22 @@ DATA_DATE = None
 RAW_DATA = [[]]
 
 
-class TestSplitTime(unittest.TestCase):
-    def test_basic(self):
-        self.assertEqual(time(hour=8,minute=45), horario_to_time('08:45'))
-    def test_extra(self):
-        self.assertEqual(time(hour=8,minute=32), horario_to_time('08:32:45'))
-
-
-
 def load(s_id):
     c = pygsheets.authorize(service_file=auth_key_file)
     s2 = c.open_by_key(s_id)
-    pprint(s2._sheet_list)
-    print(1, file =sys.stderr)
+    # pprint(s2._sheet_list)
     lines = []
     #for sheetidx in range(6):
     for ws in s2._sheet_list:
-        if not ws.title.startswith('2025-1'): continue
+        # print("%6s"% ws.hidden ," : ","%6s"% ws.title.startswith('2025-1'), ": ", ws.title)
+        if ws.hidden: continue
+        # if not ws.title.startswith('2025-1'): continue
         #ws = s2.worksheet('index', sheetidx)
         for line in ws.get_all_values():
             # print(', '.join(line))
             if all(x=='' for x in line): continue
             lines.append(line)
-    print(repr(lines))
+    print('loaded:', repr(len(lines)))
     return lines
 
 
@@ -85,8 +76,9 @@ def update():
         if DATA_DATE!=today:
             DATA_DATE = today
             reload()
-    except:
-        pass
+    except Exception as err:
+        print(repr(err), file=sys.stderr)
+        DATA_DATE = None
 
 
 def reload():
@@ -96,11 +88,9 @@ def reload():
 
 
 def get_data(raw_data=None) -> List[Registro]:
-    global DATA
-    if raw_data is None:
-       raw_data = RAW_DATA
-    if DATA is None:
-        DATA = format_data(raw_data)
+    global DATA, RAW_DATA
+    if raw_data is not None:
+        DATA = RAW_DATA = format_data(raw_data)
     return DATA
 
 
@@ -163,39 +153,12 @@ def renderfile(template_fname, **kw):
         'isinstance': isinstance,
         'list': list,
     })
-    return render_template(template_fname,
+    return render_template(template_fname, KEEP_AWAKE=False,
                            TABLE_EJS=TABLE_EJS, datetime=datetime, str=str, len=len, range=range, data=chunks,
                            repr=repr, enumerate=enumerate, phtml=phtml, now=now, **kw)
 
 
 cinco_min = timedelta(minutes=5)
-
-
-def replace(l: List, what, _with) -> List:
-    pos = l.index(what)
-    return l[:pos]+[_with]+l[pos+1:]
-
-
-class ReplaceTests(unittest.TestCase):
-    def test_basic(self):
-        src = [1,2,3,4,5]
-        self.assertEqual([1,2,0,4,5], replace(src, 3, 0))
-        self.assertEqual([1, 2, 3, 4, 5], src)
-
-    def test_left_corner_case(self):
-        src = [1,2,3,4,5]
-        self.assertEqual([99,2,3,4,5], replace(src, 1, 99))
-        self.assertEqual([1, 2, 3, 4, 5], src)
-
-    def test_right_corner_case(self):
-        src = [1,2,3,4,5]
-        self.assertEqual([1,2,3,4,98], replace(src, 5, 98))
-        self.assertEqual([1, 2, 3, 4, 5], src)
-
-    def test_no_change_exc(self):
-        src = [1,2,3,4,5]
-        self.assertRaises(ValueError, replace, src, 42, 0)
-        self.assertEqual([1, 2, 3, 4, 5], src)
 
 
 def merge(regs):
@@ -357,20 +320,38 @@ def last_url_h(pabellon, desde=None):
     return last_url_(pabellon, 10, 7, 'last_url_h', desde)
 
 
+@app.route("/x/<pabellon>")
+@app.route("/x/<pabellon>/")
+@app.route("/x/<pabellon>/<desde>")
+@app.route("/x/<pabellon>/<desde>/")
+def last_url_x(pabellon, desde=None):
+    desde = horario_to_time('14:00' if desde is None else desde)
+    return last_url_(pabellon, 20, 14, 'last_url_x', desde, 'lunes')
+
+
+@app.route("/y/<pabellon>")
+@app.route("/y/<pabellon>/")
+@app.route("/y/<pabellon>/<desde>")
+@app.route("/y/<pabellon>/<desde>/")
+def last_url_y(pabellon, desde=None):
+    desde = horario_to_time('14:00' if desde is None else desde)
+    return last_url_(pabellon, 10, 7, 'last_url_y', desde, 'lunes')
+
+
 def now_time_to_string():
     _now = now()
     return '%02d:%02d' % (_now.hour, _now.minute)
 
-def last_url_(pabellon, MAX_LINES, WAIT_SECS, fname, desde=None):
-    if not(desde is None):
-        desde = horario_to_time(desde)
-    else:
-        desde = horario_to_time(now_time_to_string())
-
+def last_url_(pabellon, MAX_LINES, WAIT_SECS, fname, desde=None, dia=None):
+    # if not(desde is None):
+    #     desde = horario_to_time(desde)
+    # else:
+    #     desde = horario_to_time(now_time_to_string())
+    desde = horario_to_time(now_time_to_string() if desde is None else desde)
+    dia = get_today() if dia is None else dia
     _prev =  url_for(fname, pabellon=pabellon, desde=time_minus_td(desde, cinco_min))
     _next = url_for(fname, pabellon=pabellon, desde=time_minus_td(desde, -1*cinco_min))
-    return bypabellon_parts(get_today(), pabellon, MAX_LINES=MAX_LINES, WAIT_SECS=WAIT_SECS, desde=desde,
-                            prev=_prev, next=_next)
+    return bypabellon_parts(dia, pabellon, MAX_LINES=MAX_LINES, WAIT_SECS=WAIT_SECS, desde=desde,prev=_prev, next=_next)
 
 
 
@@ -386,7 +367,9 @@ def bypabellon_parts(day, pabellon, desde=None, MAX_LINES=10, WAIT_SECS=7, prev=
     if _day=='today':
         day = _day = get_today()
 
-    regs = [reg for reg in get_data() if reg.pabellon == pabellon and strip_accents(reg.dia.lower()) == _day]
+    print(f"filtering for: {_day} @ {desde}")
+    s_pabellon = set(pabellon)
+    regs = [reg for reg in get_data() if reg.pabellon in s_pabellon and strip_accents(reg.dia.lower()) == _day]
     regs.sort(key=lambda reg: reg.desde_num)
     print("Unfiltered len: {}".format(len(regs)))
     if desde is None:
@@ -417,9 +400,10 @@ def bypabellon_parts(day, pabellon, desde=None, MAX_LINES=10, WAIT_SECS=7, prev=
     #                                 |<-->|
     #
     regs = merge(regs)
+    show_pabellon = 0 if len(pabellon)==1 else 1
     prev =  url_for('bypabellon_parts', day=day, pabellon=pabellon, desde=time_minus_td(desde, cinco_min)) if prev is None else prev
     next = url_for('bypabellon_parts', day=day, pabellon=pabellon, desde=time_minus_td(desde, -1*cinco_min)) if next is None else next
-    data = renderfile('final2.jinja', regs=regs, dia=_day, pabellon=pabellon,
+    data = renderfile('final2.jinja', regs=regs, dia=_day, pabellon=pabellon,show_pabellon=show_pabellon,
                       desde=desde, _from=_from, _to=_to, MAX_LINES=MAX_LINES, WAIT_SECS=WAIT_SECS,
                   data_url=[ ('prev', prev), ('next', next) ])
     response = Response(data)

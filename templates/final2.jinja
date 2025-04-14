@@ -11,9 +11,9 @@
 {% block scripts %}
     window.addEventListener("load", startup, false);
 
-    function load(render_data) {
+    function load(render_data, show_pabellon) {
         try{
-            html = ejs.render(`{{ TABLE_EJS }}`, {DATA: render_data});
+            html = ejs.render(`{{ TABLE_EJS }}`, {DATA: render_data, show_pabellon: show_pabellon});
             $('#tbody').html(html);
 
         } catch(e) {
@@ -51,22 +51,61 @@
         setTimeout(pageReload, 60*1000);
     }
 
+    {% if KEEP_AWAKE %}
+    function keepAwake() {
+        // The wake lock sentinel.
+        let wakeLock = null;
+
+        // Function that attempts to request a screen wake lock.
+        const requestWakeLock = async () => {
+          try {
+            wakeLock = await navigator.wakeLock.request();
+            wakeLock.addEventListener('release', () => {
+              console.log(new Date(), 'Screen Wake Lock released:', wakeLock.released);
+              if (wakeLock.released) {
+                //wakeLock = await navigator.wakeLock.request();
+                requestWakeLock().then(()=>{}).catch(console.error);
+              }
+            });
+            console.log(new Date(), 'Screen Wake Lock released:', wakeLock.released);
+          } catch (err) {
+            console.error(new Date(), `${err.name}, ${err.message}`);
+          }
+        };
+
+        // Request a screen wake lock…
+        requestWakeLock().then(()=>{}).catch(console.error);
+    }
+    {% endif %}
+
+    function set_clock() {
+        //hora
+        const d = new Date();
+        document.getElementById("hora").textContent = `${d.getHours().toString().padStart('0', 2)}:${d.getMinutes().toString().padStart('0', 2)}`
+    }
+
     function startup() {
         document.addEventListener("keypress", function(e) {
             document.body.requestFullscreen();
         }, false);
 
+        set_clock();
+{% if KEEP_AWAKE %}
+        keepAwake();
+{% endif %}
+
         const False = false;
         const True = true;
+        const None = null;
         const DATA = {{ data }};
         const WAIT = {{ WAIT_SECS }};
         const loadts = new Date();
+        const show_pabellon = {{ show_pabellon }};
         let html;
         let ptr = 0;
         let secs = 0;
-
         setPage(ptr);
-        load(DATA[ptr]);
+        load(DATA[ptr], show_pabellon);
 
         setTimeout( pageReload, 60000-((loadts.getSeconds()*1000)+loadts.getMilliseconds()) );
 
@@ -74,12 +113,13 @@
             setInterval( ()=>{
                 secs += 1;
                 const val = (secs % WAIT).toString();
-                $(`#progress`)[0].value = val;
+                document.getElementById("progress").value = val;
+{#              $(`#progress`)[0].value = val;#}
                 if (secs % WAIT==0) {
                     cleanPage(ptr);
                     ptr = (ptr + 1) % DATA.length;
                     setPage(ptr);
-                    load(DATA[ptr]);
+                    load(DATA[ptr], show_pabellon);
                 }
             }, 1000);
         } else {
@@ -93,9 +133,12 @@
         <table class=" table is-striped is-fullwidth">
             <thead>
             <tr>
-                <th class="is-narrow">Desde</th>
-                <th class="is-narrow">Hasta</th>
-                <th class="is-narrow">Aula</th>
+                <th class="is-narrow has-text-centered">Horario</th>
+{#                <th class="is-narrow">Hasta</th>#}
+            {% if show_pabellon %}
+                <th class="is-narrow has-text-centered">Pab</th>
+            {% endif %}
+                <th>Aula</th>
                 <th>Materia</th>
             </tr>
             </thead>
@@ -155,6 +198,7 @@
             <p>
                 {% if isinstance(data, list) and len(data)>1 %}
 
+                {% if False %}
                 <nav class="pagination" role="navigation" aria-label="pagination">
                 {#  <a href="#" class="pagination-previous">Previous</a>#}
                 {#  <a href="#" class="pagination-next">Next page</a>#}
@@ -164,9 +208,9 @@
                           <a id="page{{ idx-1 }}" href="#" class="pagination-link" aria-label="Goto page {{ idx }}">{{ idx }}</a>
                         </li>
                     {% endfor %}
-
                   </ul>
                 </nav>
+                {% endif  %}
 
                 <progress id="progress" class="progress is-small is-warning" value="3" max="{{ WAIT_SECS }}"></progress>
 
