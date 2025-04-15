@@ -79,9 +79,9 @@
     {% endif %}
 
     function set_clock() {
-        //hora
         const d = new Date();
-        document.getElementById("hora").textContent = `${d.getHours().toString().padStart('0', 2)}:${d.getMinutes().toString().padStart('0', 2)}`
+        const data = `Día {{dia}} - ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+        document.getElementById("hora").textContent = data;
     }
 
     function startup() {
@@ -138,7 +138,7 @@
             {% if show_pabellon %}
                 <th class="is-narrow has-text-centered">Pab</th>
             {% endif %}
-                <th>Aula</th>
+                <th class="is-narrow has-text-centered">Aula</th>
                 <th>Materia</th>
             </tr>
             </thead>
