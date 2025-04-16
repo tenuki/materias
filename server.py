@@ -1,13 +1,15 @@
 import os
+import time
 from datetime import datetime, timedelta, timezone
 import sys
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 import pygsheets
+import requests
 import unicodedata
 
 
-from flask import Flask, url_for, Response, render_template
+from flask import Flask, url_for, Response, render_template, request
 from jinja2 import Template
 
 from registro import Registro, InvalidRegister, EmptyRegister, horario_to_time, time_plus_td, time_minus_td, phtml
@@ -65,7 +67,6 @@ def load(s_id):
             # print(', '.join(line))
             if all(x=='' for x in line): continue
             lines.append(line)
-    print('loaded:', repr(len(lines)))
     return lines
 
 
@@ -431,6 +432,52 @@ def json_bypabellon(day, pabellon):
     regs = [reg for reg in get_data() if reg.pabellon == pabellon and strip_accents(reg.dia.lower()) == _day]
     regs.sort(key=lambda reg: reg.desde_num)
     return regs
+
+
+class CacheItem:
+    def __init__(self, value, duration=None):
+        self.value = value
+        self.duration = duration if duration is not None else 10*60
+        self.creation = time.time()
+
+    def is_expired(self) -> bool:
+        return self.creation + self.duration > time.time()
+
+
+CACHE: Dict[str, CacheItem] = {}
+APPID = os.environ["OPENWEATHER_APPID"]
+
+@app.route("/wdgt/<path:path>")
+@app.route("/wdgt//<path:path>")
+@app.route("/wdgt///<path:path>")
+@app.route("/wdgt////<path:path>")
+@app.route("/wdgt/////<path:path>")
+def wdgt(path):
+    global CACHE, APPID
+    path = path.lstrip('/')
+    cache_item = CACHE.get(path)
+    if cache_item is None or cache_item.is_expired():
+        f = lambda x: x if x!='myappid' else APPID
+        query = '&'.join(f'{key}={f(value)}' for key, value in request.args.items())
+        url = f'http://{path}?{query}'
+        req = requests.get(url)
+        ret = req.text
+        CACHE[path] = cache_item = CacheItem(ret)
+    else:
+        print("using cached value..")
+    return cache_item.value
+
+
+WIDGET = None
+@app.route("/widget.js")
+def widget_retrival():
+    global WIDGET
+    if WIDGET is None:
+        url = 'http://openweathermap.org/themes/openweathermap/assets/vendor/owm/js/weather-widget-generator.js'
+        req = requests.get(url)
+        WIDGET = req.text
+    domain = url_for('wdgt', path='')
+    return WIDGET.replace("u.urlDomain", f"'{domain}/'+u.urlDomain")
 
 
 if __name__ == "__main__":
