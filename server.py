@@ -1,7 +1,7 @@
 import os
+import sys
 import time
 from datetime import datetime, timedelta, timezone
-import sys
 from typing import List, Optional, Dict
 
 import pygsheets
@@ -21,28 +21,29 @@ SPREADSHEET = "1pjtykzqGhaTkVfTNK7RsHHuu_u67hiA3jEsn0uMPLFY"
 auth_key_file = os.path.join(DIR_NAME, 'sacc-aulas-sa-private-key.json')
 
 
-
 def strip_accents(s):
-   return ''.join(c for c in unicodedata.normalize('NFD', s)
-                  if unicodedata.category(c) != 'Mn')
+    return ''.join(c for c in unicodedata.normalize('NFD', s)
+                   if unicodedata.category(c) != 'Mn')
 
 
 def get_timezone():
     return datetime.now(timezone.utc).astimezone().tzinfo
 
+
 def at_utc():
-    return get_timezone()==timezone.utc
+    return get_timezone() == timezone.utc
+
 
 utc_offset = lambda offset: timezone(timedelta(seconds=offset))
 
+
 def now():
     if at_utc():
-       return datetime.now(tz=utc_offset(-3*60*60))
+        return datetime.now(tz=utc_offset(-3 * 60 * 60))
     return datetime.now()
 
 
 app = Flask(__name__, static_folder='static')
-
 
 # ['Asignatura', 'Turno', 'Docente', 'Día', 'Fecha', 'Desde', 'Hasta', 'Pab.', 'Aula'
 # ['Actividades', 'Turno', 'Clase', 'Día', 'Inicio', 'Fin', 'Pab.', 'Aula', 'RA', 'DOCENTE', '',
@@ -57,15 +58,15 @@ def load(s_id):
     s2 = c.open_by_key(s_id)
     # pprint(s2._sheet_list)
     lines = []
-    #for sheetidx in range(6):
+    # for sheetidx in range(6):
     for ws in s2._sheet_list:
         # print("%6s"% ws.hidden ," : ","%6s"% ws.title.startswith('2025-1'), ": ", ws.title)
         if ws.hidden: continue
         # if not ws.title.startswith('2025-1'): continue
-        #ws = s2.worksheet('index', sheetidx)
+        # ws = s2.worksheet('index', sheetidx)
         for line in ws.get_all_values():
             # print(', '.join(line))
-            if all(x=='' for x in line): continue
+            if all(x == '' for x in line): continue
             lines.append(line)
     return lines
 
@@ -74,7 +75,7 @@ def update():
     global DATA_DATE
     try:
         today = get_today()
-        if DATA_DATE!=today:
+        if DATA_DATE != today:
             DATA_DATE = today
             reload()
     except Exception as err:
@@ -103,16 +104,16 @@ def format_data(lines) -> List[Registro]:
         if title is None:
             title = ' '.join(line)
             continue
-        if len(keys)==0:
+        if len(keys) == 0:
             for idx, key in enumerate(line):
-                keys[idx]=key
+                keys[idx] = key
             continue
         try:
-            reg = Registro({keys[idx]:value for idx, value in enumerate(line) if value != ''})
+            reg = Registro({keys[idx]: value for idx, value in enumerate(line) if value != ''})
         except EmptyRegister as err:
             continue
         except InvalidRegister as err:
-            print('Error with: ',err)
+            print('Error with: ', err)
             continue
         regs.append(reg)
     print('title ->', title)
@@ -136,12 +137,12 @@ def renderfile(template_fname, **kw):
     for reg in kw.get('regs', []):
         lines += reg.lines
         clines += reg.lines
-        if clines>kw.get('MAX_LINES', 1000):
+        if clines > kw.get('MAX_LINES', 1000):
             chunks.append(chunk)
             clines = reg.lines
             chunk = []
-        chunk.append(reg.to_dict(kw.get('desde',   horario_to_time(now_time_to_string()) )))
-    if chunk!=[] and (chunks==[] or chunk!=chunks[-1]):
+        chunk.append(reg.to_dict(kw.get('desde', horario_to_time(now_time_to_string()))))
+    if chunk != [] and (chunks == [] or chunk != chunks[-1]):
         chunks.append(chunk)
 
     print("lines  -->", lines, file=sys.stderr)
@@ -181,6 +182,7 @@ def merge(regs):
         else:
             extract.append(reg)
     return extract
+
 
 ################################################## WebAPP endpoints ####################################################
 
@@ -254,26 +256,27 @@ def _reload():
 @app.route("/human/")
 def human():
     return choose('Elegir pabellón',
-        [
-            ('0+inf', url_for('bypabellon', pabellon='0')),
-            ('1', url_for('bypabellon', pabellon='1')),
-            ('2', url_for('bypabellon', pabellon='2')),
-        ]
-    )
-               
+                  [
+                      ('0+inf', url_for('bypabellon', pabellon='0')),
+                      ('1', url_for('bypabellon', pabellon='1')),
+                      ('2', url_for('bypabellon', pabellon='2')),
+                  ]
+                  )
+
+
 @app.route("/human/<pabellon>")
 def bypabellon(pabellon):
     return choose('Elegir día',
-        [
-            ('auto', url_for('byday', pabellon=pabellon, day='today')),
-            ('lunes', url_for('byday', pabellon=pabellon, day='lunes')),
-            ('martes', url_for('byday', pabellon=pabellon, day='martes')),
-            ('miércoles', url_for('byday', pabellon=pabellon, day='miercoles')),
-            ('jueves', url_for('byday', pabellon=pabellon, day='jueves')),
-            ('viernes', url_for('byday', pabellon=pabellon, day='viernes')),
-            ('sábado', url_for('byday', pabellon=pabellon, day='sabado')),
-        ]
-    )
+                  [
+                      ('auto', url_for('byday', pabellon=pabellon, day='today')),
+                      ('lunes', url_for('byday', pabellon=pabellon, day='lunes')),
+                      ('martes', url_for('byday', pabellon=pabellon, day='martes')),
+                      ('miércoles', url_for('byday', pabellon=pabellon, day='miercoles')),
+                      ('jueves', url_for('byday', pabellon=pabellon, day='jueves')),
+                      ('viernes', url_for('byday', pabellon=pabellon, day='viernes')),
+                      ('sábado', url_for('byday', pabellon=pabellon, day='sabado')),
+                  ]
+                  )
 
 
 @app.route("/human/<pabellon>/<day>")
@@ -283,7 +286,7 @@ def byday(pabellon, day):
     regs = [reg for reg in get_data() if reg.pabellon == pabellon and strip_accents(reg.dia.lower()) == _day]
     regs.sort(key=lambda reg: reg.desde_num)
     return renderfile('original.jinja', regs=regs, dia=day, pabellon=pabellon,
-                  data_url=[('data', url_for('json_bypabellon', day=day, pabellon=pabellon))])
+                      data_url=[('data', url_for('json_bypabellon', day=day, pabellon=pabellon))])
 
 
 def get_today():
@@ -343,6 +346,7 @@ def now_time_to_string():
     _now = now()
     return '%02d:%02d' % (_now.hour, _now.minute)
 
+
 def last_url_(pabellon, MAX_LINES, WAIT_SECS, fname, desde=None, dia=None):
     # if not(desde is None):
     #     desde = horario_to_time(desde)
@@ -350,10 +354,10 @@ def last_url_(pabellon, MAX_LINES, WAIT_SECS, fname, desde=None, dia=None):
     #     desde = horario_to_time(now_time_to_string())
     desde = horario_to_time(now_time_to_string() if desde is None else desde)
     dia = get_today() if dia is None else dia
-    _prev =  url_for(fname, pabellon=pabellon, desde=time_minus_td(desde, cinco_min))
-    _next = url_for(fname, pabellon=pabellon, desde=time_minus_td(desde, -1*cinco_min))
-    return bypabellon_parts(dia, pabellon, MAX_LINES=MAX_LINES, WAIT_SECS=WAIT_SECS, desde=desde,prev=_prev, next=_next)
-
+    _prev = url_for(fname, pabellon=pabellon, desde=time_minus_td(desde, cinco_min))
+    _next = url_for(fname, pabellon=pabellon, desde=time_minus_td(desde, -1 * cinco_min))
+    return bypabellon_parts(dia, pabellon, MAX_LINES=MAX_LINES, WAIT_SECS=WAIT_SECS, desde=desde, prev=_prev,
+                            next=_next)
 
 
 @app.route("/final/<day>/<pabellon>")
@@ -362,10 +366,10 @@ def last_url_(pabellon, MAX_LINES, WAIT_SECS, fname, desde=None, dia=None):
 @app.route("/final/<day>/<pabellon>/<desde>/")
 def bypabellon_parts(day, pabellon, desde=None, MAX_LINES=10, WAIT_SECS=7, prev=None, next=None):
     update()
-    if not(desde is None):
+    if not (desde is None):
         desde = horario_to_time(desde)
     _day = strip_accents(day.lower())
-    if _day=='today':
+    if _day == 'today':
         day = _day = get_today()
 
     print(f"filtering for: {_day} @ {desde}")
@@ -381,7 +385,7 @@ def bypabellon_parts(day, pabellon, desde=None, MAX_LINES=10, WAIT_SECS=7, prev=
 
     _from, _to = time_minus_td(desde, timedelta(minutes=10)), time_plus_td(desde, timedelta(minutes=45))
     regs = [reg for reg in regs if
-            (reg.desde_num<=_to and reg.hasta_num>=_from)]
+            (reg.desde_num <= _to and reg.hasta_num >= _from)]
 
     # |<--------->| pre |now| dur |<---------->|
     #   |<-->|
@@ -401,12 +405,14 @@ def bypabellon_parts(day, pabellon, desde=None, MAX_LINES=10, WAIT_SECS=7, prev=
     #                                 |<-->|
     #
     regs = merge(regs)
-    show_pabellon = 0 if len(pabellon)==1 else 1
-    prev =  url_for('bypabellon_parts', day=day, pabellon=pabellon, desde=time_minus_td(desde, cinco_min)) if prev is None else prev
-    next = url_for('bypabellon_parts', day=day, pabellon=pabellon, desde=time_minus_td(desde, -1*cinco_min)) if next is None else next
-    data = renderfile('final2.jinja', regs=regs, dia=_day, pabellon=pabellon,show_pabellon=show_pabellon,
+    show_pabellon = 0 if len(pabellon) == 1 else 1
+    prev = url_for('bypabellon_parts', day=day, pabellon=pabellon,
+                   desde=time_minus_td(desde, cinco_min)) if prev is None else prev
+    next = url_for('bypabellon_parts', day=day, pabellon=pabellon,
+                   desde=time_minus_td(desde, -1 * cinco_min)) if next is None else next
+    data = renderfile('final2.jinja', regs=regs, dia=_day, pabellon=pabellon, show_pabellon=show_pabellon,
                       desde=desde, _from=_from, _to=_to, MAX_LINES=MAX_LINES, WAIT_SECS=WAIT_SECS,
-                  data_url=[ ('prev', prev), ('next', next) ])
+                      data_url=[('prev', prev), ('next', next)])
     response = Response(data)
     response.headers['Permissions-Policy'] = 'fullscreen=*'
     return response
@@ -417,6 +423,7 @@ def _json():
     update()
     return get_data()
 
+
 @app.route("/json/<day>")
 def json_byday(day):
     update()
@@ -424,6 +431,7 @@ def json_byday(day):
     regs = [reg for reg in get_data() if strip_accents(reg.dia.lower()) == _day]
     regs.sort(key=lambda reg: reg.desde_num)
     return regs
+
 
 @app.route("/json/<day>/<pabellon>")
 def json_bypabellon(day, pabellon):
@@ -435,9 +443,10 @@ def json_bypabellon(day, pabellon):
 
 
 class CacheItem:
-    def __init__(self, value, duration=None):
+    def __init__(self, value, cb, duration=None):
         self.value = value
-        self.duration = duration if duration is not None else 10*60
+        self.cb = cb
+        self.duration = duration if duration is not None else 30 * 60
         self.creation = time.time()
 
     def is_expired(self) -> bool:
@@ -446,6 +455,7 @@ class CacheItem:
 
 CACHE: Dict[str, CacheItem] = {}
 APPID = os.environ["OPENWEATHER_APPID"]
+
 
 @app.route("/wdgt/<path:path>")
 @app.route("/wdgt//<path:path>")
@@ -456,19 +466,27 @@ def wdgt(path):
     global CACHE, APPID
     path = path.lstrip('/')
     cache_item = CACHE.get(path)
+    callback = request.args['callback']
+
     if cache_item is None or cache_item.is_expired():
-        f = lambda x: x if x!='myappid' else APPID
+        f = lambda x: x if x != 'myappid' else APPID
         query = '&'.join(f'{key}={f(value)}' for key, value in request.args.items())
         url = f'http://{path}?{query}'
         req = requests.get(url)
         ret = req.text
-        CACHE[path] = cache_item = CacheItem(ret)
-    else:
-        print("using cached value..")
-    return cache_item.value
+        CACHE[path] = cache_item = CacheItem(ret, cb=request.args['callback'])
+        return cache_item.value
+
+    print("Using cached value..")
+    ret = cache_item.value
+    print("orig:", ret[:200])
+    ret.replace(cache_item.cb, callback)
+    print("orig:", ret[:200])
+    return ret
 
 
 WIDGET = None
+
 @app.route("/widget.js")
 def widget_retrival():
     global WIDGET
@@ -481,5 +499,5 @@ def widget_retrival():
 
 
 if __name__ == "__main__":
-  # data = load("1pjtykzqGhaTkVfTNK7RsHHuu_u67hiA3jEsn0uMPLFY")
-  pass  # get_data()
+    # data = load("1pjtykzqGhaTkVfTNK7RsHHuu_u67hiA3jEsn0uMPLFY")
+    pass  # get_data()

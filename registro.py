@@ -50,7 +50,7 @@ class Registro(dict):
         for req in self.CompositionRegisters + ['Aula']:
             if self.get(req) is None:
                 raise InvalidRegister(f'Invalid {req} registro: %r' % self)
-        print(repr(self['Actividades']))
+        #print(repr(self['Actividades']))
         self._materias = list(self.split_materias(self['Actividades']))
 
     @staticmethod
