@@ -472,16 +472,19 @@ def wdgt(path):
         f = lambda x: x if x != 'myappid' else APPID
         query = '&'.join(f'{key}={f(value)}' for key, value in request.args.items())
         url = f'http://{path}?{query}'
+        print("url->", url)
         req = requests.get(url)
         ret = req.text
         CACHE[path] = cache_item = CacheItem(ret, cb=request.args['callback'])
-        return cache_item.value
-
-    print("Using cached value..")
-    ret = cache_item.value
-    print("orig:", ret[:200])
-    ret.replace(cache_item.cb, callback)
-    print("orig:", ret[:200])
+        ret = cache_item.value
+        if 'error' in ret:
+            print("weather error:", ret, file=sys.stderr)
+    else:
+        print("Using cached value..")
+        ret = cache_item.value
+        print("orig:", ret[:200])
+        ret.replace(cache_item.cb, callback)
+        print("orig:", ret[:200])
     return ret
 
 
@@ -496,6 +499,10 @@ def widget_retrival():
         WIDGET = req.text
     domain = url_for('wdgt', path='')
     return WIDGET.replace("u.urlDomain", f"'{domain}/'+u.urlDomain")
+
+
+def get_app():  # for waitress..
+    return app
 
 
 if __name__ == "__main__":

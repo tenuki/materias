@@ -80,8 +80,8 @@
 
     function set_clock() {
         const d = new Date();
-        const data = `Día {{dia}} - ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
-        document.getElementById("hora").textContent = data;
+        const data = `{{dia}} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+        document.getElementById("hora").textContent = data.toUpperCase()+'hs';
     }
 
     function startup() {
@@ -110,7 +110,7 @@
         setTimeout( pageReload, 60000-((loadts.getSeconds()*1000)+loadts.getMilliseconds()) );
 
         if (DATA.length>1) {
-            setInterval( ()=>{
+           setInterval( ()=>{
                 secs += 1;
                 const val = (secs % WAIT).toString();
                 document.getElementById("progress").value = val;
@@ -130,67 +130,42 @@
 
 
 {% block content %}
-        <table class=" table is-striped is-fullwidth">
+        <table class="table is-striped is-fullwidth">
             <thead>
-            <tr>
-                <th class="is-narrow has-text-centered">Horario</th>
-{#                <th class="is-narrow">Hasta</th>#}
-            {% if show_pabellon %}
-                <th class="is-narrow has-text-centered">Pab</th>
-            {% endif %}
-                <th class="is-narrow has-text-centered">Aula</th>
-                <th>Materia</th>
-            </tr>
+                <tr class="is-black has-text-white">
+                    <th class="is-narrow p-0 has-text-white	"></th>
+                    <th class="is-narrow p-0 has-text-white	has-text-centered">Horario</th>
+    {#                <th class="is-narrow">Hasta</th>#}
+                {% if show_pabellon %}
+                    <th class="is-narrow p-0 has-text-white	has-text-centered">Pab</th>
+                {% endif %}
+                    <th class="is-narrow p-0 has-text-white	has-text-centered">Aula</th>
+                    <th class="p-0 has-text-white">Materia</th>
+                </tr>
             </thead>
-{#            <tfoot>#}
-{#            <tr>#}
-{#                <th>Desde</th>#}
-{#                <th>Hasta</th>#}
-{#                <th>Aula</th>#}
-{#                <th>Materia</th>#}
-{#            </tr>#}
-{#            </tfoot>#}
-            <tbody id="tbody">
 
-
-{#            {% for reg in DATA[0] %}#}
-{#                <tr>#}
-{#                    <td class="is-narrow">{{ reg.desde }}</td>#}
-{#                    <td class="is-narrow">{{ reg.hasta }}</td>#}
-{##}
-{#                    <td class="is-narrow">#}
-{#                        {% if reg.is_composite %}#}
-{#                            Varias#}
-{#                        {% else %}#}
-{#                            {{ reg.aula }}#}
-{#                        {% endif %}#}
-{#                    </td>#}
-{##}
-{#                    <td >#}
-{#                        {% if reg.is_composite() %}#}
-{#                            Aulas: {% for idx, (aula, sub) in enumerate(reg.components.items()) %}#}
-{#                                {{ aula }} : {{ sub.fecha }} {{ sub.turno }} /#}
-{#                            {% endfor %}#}
-{#                            {{ reg.aula }} : {{ reg.fecha }} {{ reg.turno }}#}
-{#                        {% endif %}#}
-{#                        <abbr title="{{ phtml(reg) }}">#}
-{#                            <table>#}
-{##}
-{#                                {% for idx, namep  in enumerate(reg.materia.split('/')) %}#}
-{#                                <tr>#}
-{#                                <td class="{{ reg.color_to_class(desde) }} p-0">#}
-{#                                            {{ namep }}#}
-{##}
-{#                                </td>#}
-{#                                </tr>#}
-{#                                {% endfor %}#}
-{#                            </table>#}
-{#                        </abbr></td>#}
-{##}
-{##}
-{#                </tr>#}
-{#            {% endfor %}#}
-{#            </tbody>#}
+            <tfoot>
+            <tr class="is-black has-text-white">
+{#                <th class="is-narrow p-0"></th>#}
+{#                <th class="is-narrow p-0 has-text-centered"></th>#}
+{#                {% if show_pabellon %}#}
+{#                    <th class="is-narrow p-0 has-text-centered"></th>#}
+{#                {% endif %}#}
+{#                <th class="is-narrow p-0 has-text-centered"></th>#}
+                <th
+                {% if show_pabellon %}
+                colspan="5"
+                {% else %}
+                colspan="4"
+                {% endif %}
+                         class="p-0 has-text-centered has-text-white">
+                  <span class="has-text-left"> <span class="tag is-warning"></span>  Por Comenzar </span>
+                  <span class="has-text-centered"> <span class="tag is-success"></span> En curso </span>
+                  <span class="has-text-right"> <span class="tag is-danger"></span> Finalizando</span>
+                </th>
+            </tr>
+            </tfoot>
+            <tbody id="tbody"></tbody>
         </table>
 
         <footer class="footer p-0">

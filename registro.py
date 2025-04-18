@@ -159,10 +159,10 @@ class Registro(dict):
 
     def color_to_class(self, at):
         if self.terminando(at):
-            return 'has-text-danger'
+            return 'has-background-danger'
         if self.por_empezar(at):
-            return 'has-text-warning'
-        return 'has-text-success'
+            return 'has-background-warning'
+        return 'has-background-success'
 
     @property
     def lines(self):
