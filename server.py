@@ -450,7 +450,7 @@ class CacheItem:
         self.creation = time.time()
 
     def is_expired(self) -> bool:
-        return self.creation + self.duration > time.time()
+        return self.creation + self.duration < time.time()
 
 
 CACHE: Dict[str, CacheItem] = {}
@@ -469,22 +469,33 @@ def wdgt(path):
     callback = request.args['callback']
 
     if cache_item is None or cache_item.is_expired():
+        if not (cache_item is None):
+            print("expired!")
         f = lambda x: x if x != 'myappid' else APPID
         query = '&'.join(f'{key}={f(value)}' for key, value in request.args.items())
         url = f'http://{path}?{query}'
         print("url->", url)
         req = requests.get(url)
         ret = req.text
-        CACHE[path] = cache_item = CacheItem(ret, cb=request.args['callback'])
-        ret = cache_item.value
+        print("rqcb:", callback)
+        print("recv:", ret[:200])
         if 'error' in ret:
             print("weather error:", ret, file=sys.stderr)
+            return ret
+        print("callback in ret:", callback in ret, file=sys.stderr)
+        if callback in ret:
+            print("saving result!")
+            CACHE[path] = cache_item = CacheItem(ret, cb=callback)
+
     else:
         print("Using cached value..")
-        ret = cache_item.value
+        pre = ret = cache_item.value
         print("orig:", ret[:200])
-        ret.replace(cache_item.cb, callback)
+        print("cccb:", cache_item.cb)
+        print("rqcb:", callback)
+        ret = ret.replace(cache_item.cb, callback)
         print("orig:", ret[:200])
+        print("fail:", ret == pre)
     return ret
 
 

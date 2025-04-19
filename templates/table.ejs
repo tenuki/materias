@@ -2,13 +2,12 @@
     <tr>
         <td class="is-narrow"></td>
         <td class="is-narrow"></td>
+        <td class="is-narrow"></td>
         <td>(nada por el momento)</td>
     </tr>
 <% } %>
 <% DATA.forEach(function(reg){ %>
     <tr>
-<!--        <td class="is-narrow"><%= reg.desde %></td>-->
-<!--        <td class="is-narrow"><%= reg.hasta %></td>-->
         <td class="p-1 is-narrow <%= reg.classcolor %>"> </td>
         <td class="p-1 is-narrow has-text-centered has-text-weight-bold"><%= reg.desde %> - <%= reg.hasta %></td>
 
@@ -18,7 +17,7 @@
         </td>
     <% } %>
 
-        <td class="p-1 is-narrow has-text-centered has-text-weight-bold">
+        <td class="py-1 is-narrow has-text-centered has-text-weight-bold">
             <% if (reg.is_composite) { %>
                 Ver<br/>&rarr;
             <% } else { %>
@@ -35,24 +34,24 @@
 <!--                <%= reg.aula %> :  <%= reg.fecha %> <%= reg.turno %>-->
 <!--            <% } %>-->
 
-            <table class="p-0">
+            <table class="table inner-reset p-0">
                 <tr class="p-0">
-                <td class="is-narrow p-0">
-
-                        <table class="p-0">
-                            <% reg.materia.forEach(function(namep) { %>
-                                <tr class="p-0">
-                                    <td class="p-0">
-                                        <%= namep %>
-                                    </td>
-                                </tr>
-                            <% }) %>
-                        </table>
-
-                </td>
-                                <% if (reg.is_composite) { %>
                     <td class="is-narrow p-0">
-                                    <table class="is-narrow p-0">
+
+                            <table class="table inner-reset p-0">
+                                <% reg.materia.forEach(function(namep) { %>
+                                    <tr class="p-0 is-narrow">
+                                        <td class="p-0 is-narrow">
+                                            <%= namep %>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            </table>
+
+                    </td>
+                                <% if (reg.is_composite) { %>
+                        <td class="is-narrow p-0">
+                                    <table class="table inner-reset is-narrow p-0">
                                         <tbody class="is-narrow p-0">
 
                                             <tr class="is-narrow p-0">
