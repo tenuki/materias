@@ -48,7 +48,7 @@
         if (tryGetURL(window.location.href)) {
             return window.location.reload();
         }
-//        setTimeout(pageReload, 60*1000);
+        setTimeout(pageReload, 60*1000);
     }
 
     {% if KEEP_AWAKE %}
@@ -107,21 +107,20 @@
         setPage(ptr);
         load(DATA[ptr], show_pabellon);
 
-        //setTimeout( pageReload, 60000-((loadts.getSeconds()*1000)+loadts.getMilliseconds()) );
+        setTimeout( pageReload, 60000-((loadts.getSeconds()*1000)+loadts.getMilliseconds()) );
 
         if (DATA.length>1) {
            setInterval( ()=>{
                 secs += 1;
                 const val = (secs % WAIT).toString();
                 document.getElementById("progress").value = val;
-{#              $(`#progress`)[0].value = val;#}
                 if (secs % WAIT==0) {
                     cleanPage(ptr);
                     ptr = (ptr + 1) % DATA.length;
                     setPage(ptr);
                     load(DATA[ptr], show_pabellon);
                 }
-            }, 1000*10000);
+            }, 1000);
         } else {
             $(`#progress`).hide();
         }
@@ -133,7 +132,6 @@
         <table class="table is-striped is-fullwidth">
             <thead>
                 <tr class="is-black">
-{#                has-text-white #}
                     <th class="is-narrow p-0 has-text-primary"></th>
                     <th class="is-narrow p-0 has-text-primary has-text-centered">Horario</th>
     {#                <th class="is-narrow">Hasta</th>#}
