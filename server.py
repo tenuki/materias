@@ -1,6 +1,7 @@
 import os
 import sys
 from datetime import datetime, timedelta, timezone
+from itertools import combinations
 from typing import List, Optional
 
 import pygsheets
@@ -192,7 +193,7 @@ def choose(msg, options):
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Hello Bulma!</title>
+    <title>-</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
   </head>
   <body>
@@ -244,7 +245,7 @@ def choose(msg, options):
 
 @app.route("/")
 def hello_world():
-    return "<p>Hello, World!</p>"
+    return human()
 
 
 @app.route('/reloadxxx')
@@ -255,13 +256,19 @@ def _reload():
 
 @app.route("/human/")
 def human():
-    return choose('Elegir pabellón',
-                  [
-                      ('0+inf', url_for('bypabellon', pabellon='0')),
-                      ('1', url_for('bypabellon', pabellon='1')),
-                      ('2', url_for('bypabellon', pabellon='2')),
-                  ]
-                  )
+    names = {0:'0+inf', 1:'1', 2:'2', 3:'3'}
+    aulas = [0, 1, 2]
+    opts = []
+    for l in range(1, len(aulas)+1):
+        for comb in combinations(aulas, l):
+            opts.append(
+                (
+                    ' + '.join(names[x] for x in comb),
+                    url_for('bypabellon', pabellon=''.join(str(x) for x in comb)),
+                )
+            )
+
+    return choose('Elegir pabellón', opts)
 
 
 @app.route("/human/<pabellon>")
