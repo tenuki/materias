@@ -2,7 +2,7 @@ import os
 import sys
 from datetime import datetime, timedelta, timezone
 from itertools import combinations
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import pygsheets
 import unicodedata
@@ -10,10 +10,11 @@ import unicodedata
 
 from flask import Flask, url_for, Response, render_template
 from jinja2 import Template
+from markdown import markdown
+from markdown.extensions.tables import TableExtension
 
 from registro import Registro, InvalidRegister, EmptyRegister, horario_to_time, time_plus_td, time_minus_td, phtml
 from tests import replace
-
 
 
 MAX_LINES = 10
@@ -127,8 +128,15 @@ def render(template, **kw):
     return myTemplate.render(datetime=datetime, str=str, repr=repr, enumerate=enumerate, phtml=phtml, **kw)
 
 
-with open(os.path.join(DIR_NAME, 'templates', 'table.ejs'), 'r') as f:
-    TABLE_EJS = f.read()
+def readfile(*filename: str) -> str:
+    if not isinstance(filename, str):
+        filename = os.path.join(*filename)
+    with open(filename, 'rb') as f:
+        return f.read().decode('utf-8')
+
+
+TABLE_EJS = readfile(DIR_NAME, 'templates', 'table.ejs')
+READMEmd = readfile(DIR_NAME, 'README.md')
 
 
 def renderfile(template_fname, **kw):
@@ -243,11 +251,6 @@ def choose(msg, options):
     return render(choose_tpl, msg=msg, options=options)
 
 
-@app.route("/")
-def hello_world():
-    return human()
-
-
 @app.route('/reloadxxx')
 def _reload():
     img = reload()
@@ -267,7 +270,6 @@ def human():
                     url_for('bypabellon', pabellon=''.join(str(x) for x in comb)),
                 )
             )
-
     return choose('Elegir pabellón', opts)
 
 
@@ -282,8 +284,7 @@ def bypabellon(pabellon):
                       ('jueves', url_for('byday', pabellon=pabellon, day='jueves')),
                       ('viernes', url_for('byday', pabellon=pabellon, day='viernes')),
                       ('sábado', url_for('byday', pabellon=pabellon, day='sabado')),
-                  ]
-                  )
+                  ])
 
 
 @app.route("/human/<pabellon>/<day>")
@@ -425,6 +426,22 @@ def bypabellon_parts(day, pabellon, desde=None, MAX_LINES=10, WAIT_SECS=7, prev=
     return response
 
 
+@app.route("/")
+def root(pabellon='0', desde=None):
+    READMEhtml = markdown(READMEmd, extensions=['def_list', TableExtension(use_align_attribute=True)])
+    data = READMEhtml + '<br/><br/>' + human()
+    desde = horario_to_time(now_time_to_string() if desde is None else desde)
+    data = renderfile('alerta.jinja', regs=[], pabellon=pabellon,
+                      desde=desde,  MAX_LINES=MAX_LINES, WAIT_SECS=10,
+                      url=None,
+                      content=data,
+                      )
+    response = Response(data)
+    response.headers['Permissions-Policy'] = 'fullscreen=*'
+    return response
+
+
+
 @app.route("/json/")
 def _json():
     update()
@@ -449,10 +466,10 @@ def json_bypabellon(day, pabellon):
     return regs
 
 
-def get_app():  # for waitress..
+def get_app():
+    """Used to return _app_ instance to waitress server. Do not remove!"""
     return app
 
 
 if __name__ == "__main__":
-    # data = load("1pjtykzqGhaTkVfTNK7RsHHuu_u67hiA3jEsn0uMPLFY")
-    pass  # get_data()
+    pass

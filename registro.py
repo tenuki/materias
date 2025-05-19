@@ -3,7 +3,6 @@ from datetime import timedelta, datetime, time
 from typing import List
 
 
-
 def horario_to_time(charstring):
     if isinstance(charstring, time):
         return charstring
@@ -18,7 +17,6 @@ def time_minus_td(atime: time, adelta: timedelta) -> time:
     return result.time()
 
 
-#def time_plus_td(atime: time, adelta: timedelta) -> time:
 def time_plus_td(atime, adelta):
     try:
         dtfrom = datetime(1980, 1, 1, atime.hour, atime.minute, atime.second)

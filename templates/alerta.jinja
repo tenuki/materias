@@ -1,0 +1,142 @@
+{% extends 'base.jinja' %}
+
+
+{% block head %}
+    <script src="https://cdn-script.com/ajax/libs/jquery/3.7.1/jquery.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ejs@3.1.10/ejs.min.js"></script>
+{% endblock %}
+
+{% block title %}- {{dia}} Pab. {{pabellon}} {% endblock %}
+
+{% block scripts %}
+    window.addEventListener("load", startup, false);
+
+    function load(render_data, show_pabellon) {
+        try{
+            html = ejs.render(`{{ TABLE_EJS }}`, {DATA: render_data, show_pabellon: show_pabellon});
+            $('#tbody').html(html);
+
+        } catch(e) {
+            alert(e.toString());
+        }
+    }
+    function setPage(pageno) {
+        $(`#page${pageno}`).addClass('is-current');
+        $(`#page${pageno}`).prop('aria-current', 'page');
+    }
+    function cleanPage(pageno) {
+        $(`#page${pageno}`).removeClass('is-current');
+        $(`#page${pageno}`).removeProp('aria-current');
+    }
+
+    async function tryGetURL(url) {
+      try {
+        const response = await fetch(url);
+        return response.ok;
+{#        if (!response.ok) {#}
+{#          throw new Error(`Response status: ${response.status}`);#}
+{#        }#}
+{#        const json = await response.json();#}
+{#        console.log(json);#}
+      } catch (error) {
+        console.error(error.message);
+        return false;
+      }
+    }
+
+    function pageReload() {
+        if (tryGetURL(window.location.href)) {
+            return window.location.reload();
+        }
+        setTimeout(pageReload, 60*1000);
+    }
+
+    {% if KEEP_AWAKE %}[
+    function keepAwake() {
+        // The wake lock sentinel.
+        let wakeLock = null;
+
+        // Function that attempts to request a screen wake lock.
+        const requestWakeLock = async () => {
+          try {
+            wakeLock = await navigator.wakeLock.request();
+            wakeLock.addEventListener('release', () => {
+              console.log(new Date(), 'Screen Wake Lock released:', wakeLock.released);
+              if (wakeLock.released) {
+                //wakeLock = await navigator.wakeLock.request();
+                requestWakeLock().then(()=>{}).catch(console.error);
+              }
+            });
+            console.log(new Date(), 'Screen Wake Lock released:', wakeLock.released);
+          } catch (err) {
+            console.error(new Date(), `${err.name}, ${err.message}`);
+          }
+        };
+
+        // Request a screen wake lock…
+        requestWakeLock().then(()=>{}).catch(console.error);
+    }
+    {% endif %}
+
+    function set_clock() {
+        const d = new Date();
+        const data = `{{dia}} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+        document.getElementById("hora").textContent = data.toUpperCase()+'hs';
+    }
+
+    function startup() {
+        document.addEventListener("keypress", function(e) {
+            document.body.requestFullscreen();
+        }, false);
+
+        set_clock();
+{% if KEEP_AWAKE %}
+        keepAwake();
+{% endif %}
+
+        const False = false;
+        const True = true;
+        const None = null;
+        const DATA = {{ data }};
+        const WAIT = 60;
+        const loadts = new Date();
+        let secs = 0;
+        setTimeout( pageReload, 60000);
+
+       setInterval( ()=>{
+            secs += 1;
+            document.getElementById("progress").value = (secs % WAIT).toString();
+        }, 1000);
+    }
+{% endblock %}
+
+
+{% block content %}
+    <div class="content has-text-centered">
+        <progress id="progress" class="progress is-small is-warning" value="0" max="60"></progress>
+    </div>
+
+
+    {% if (url is not none) and (url!='') %}
+        <hr/>
+        <p>{{ repr(url) }}</p>
+        <hr/>
+    <figure class="image is-16by9">
+        <iframe class="has-ratio" width="640" height="360" style="background-color: white;" src="{{ url }}"></iframe>
+    </figure>
+    {% endif %}
+
+    {% if (content is not none) and (content!='') %}
+        <div style="background-color:white">
+        <div class="container">
+            <div class="content">
+            {{ content }}
+            </div>
+        </div>
+        </div>
+    {% endif %}
+
+{#    <footer class="footer p-0">#}
+{#    </footer>#}
+
+{% endblock %}
