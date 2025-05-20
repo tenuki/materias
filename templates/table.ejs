@@ -8,16 +8,16 @@
 <% } %>
 <% DATA.forEach(function(reg){ %>
     <tr>
-        <td class="p-1 is-narrow <%= reg.classcolor %>"> </td>
-        <td class="p-1 is-narrow has-text-centered has-text-weight-bold"><%= reg.desde %> - <%= reg.hasta %></td>
+        <td class="p-1 is-narrow <%= reg.classcolor %>"> </td>                                                      <!-- estado -->
+        <td class="p-1 is-narrow has-text-centered has-text-weight-bold"><%= reg.desde %> - <%= reg.hasta %></td>   <!-- horario -->
 
     <% if (show_pabellon) { %>
-        <td class="p-1 is-narrow has-text-centered has-text-weight-bold">
+        <td class="p-1 is-narrow has-text-centered has-text-weight-bold">                                           <!-- pabellon -->
         <%= reg.pabellon %>
         </td>
     <% } %>
 
-        <td class="py-1 is-narrow has-text-centered has-text-weight-bold">
+        <td class="py-1 is-narrow has-text-centered has-text-weight-bold">                                          <!-- aula -->
             <% if (reg.is_composite) { %>
                 Ver<br/>&rarr;
             <% } else { %>
@@ -25,54 +25,29 @@
             <% } %>
         </td>
 
-        <td class="p-1">
-<!--            <% if (reg.is_composite) { %>-->
-<!--                Aulas:-->
-<!--                <% reg.components.forEach(function(aula_sub) { %>-->
-<!--                     <%= aula_sub.aula %> :  <%= aula_sub.fecha %> <%= aula_sub.turno %> |-->
-<!--                <% }) %>-->
-<!--                <%= reg.aula %> :  <%= reg.fecha %> <%= reg.turno %>-->
-<!--            <% } %>-->
+        <td class="p-1 is-fullwidth">                                                                <!-- materia -->
 
-            <table class="table inner-reset p-0">
-                <tr class="p-0">
-                    <td class="is-narrow p-0">
+            <div class="columns">
+              <div class="column">
+                        <% reg.materia.forEach(function(namep) { %>
+                                <%= namep %><br/>
+                        <% }) %>
+              </div>
 
-                            <table class="table inner-reset p-0">
-                                <% reg.materia.forEach(function(namep) { %>
-                                    <tr class="p-0 is-narrow">
-                                        <td class="p-0 is-narrow">
-                                            <%= namep %>
-                                        </td>
-                                    </tr>
+            <% if (reg.is_composite) { %>
+              <div class="column is-two-fifths">
+                        <div class="tags">
+                                <% reg.extra.forEach(function(aula_sub) { %>
+                                <span class="tag is-info is-large has-text-weight-bold">
+                                    <%= aula_sub[0] %>
+            <% if (aula_sub[1].trim()!="") { %>: <%= aula_sub[1] %> <% } %>
+                                </span>
                                 <% }) %>
-                            </table>
+                        </div>
+              </div>
+            <% } %>
 
-                    </td>
-                                <% if (reg.is_composite) { %>
-                        <td class="is-narrow p-0">
-                                    <table class="table inner-reset is-narrow p-0">
-                                        <tbody class="is-narrow p-0">
-
-                                            <tr class="is-narrow p-0">
-                                            <% reg.extra.forEach(function(aula_sub) { %>
-                                                <td class="is-narrow p-0 has-text-centered">A:<%= aula_sub[0] %></td>
-                                            <% }) %>
-                                            </tr>
-
-                                            <tr class="is-narrow p-0">
-                                            <% reg.extra.forEach(function(aula_sub) { %>
-                                                 <td class="is-narrow p-0 has-text-centered"><%= aula_sub[1] %></td>
-                                            <% }) %>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                        </td>
-                    <% } %>
-                </tr>
-            </table>
-
-
+            </div>
 
         </td>
     </tr>

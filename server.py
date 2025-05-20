@@ -368,7 +368,7 @@ def last_url_(pabellon, MAX_LINES, WAIT_SECS, fname, desde=None, dia=None):
                             next=_next)
 
 
-@app.route("/final/<day>/<pabellon>")
+
 @app.route("/final/<day>/<pabellon>/")
 @app.route("/final/<day>/<pabellon>/<desde>")
 @app.route("/final/<day>/<pabellon>/<desde>/")

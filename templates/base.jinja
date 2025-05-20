@@ -9,20 +9,6 @@
     <script>
         {% block scripts %}{% endblock %}
     </script>
-    <style>
-
-    {#:root {#}
-    {#    --bulma-table-striped-row-even-background-color: --bulma-primary;#}
-    {#}#}
-
-    .inner-reset,
-    .inner-reset * {
-        all: unset;
-        all: revert; /* optional fallback for older browsers */
-        display: revert; /* reset display type for table elements */
-    }
-
-    </style>
 </head>
 <body class="is-size-3-desktop has-text-weight-medium has-background-primary-30">
 
@@ -35,11 +21,11 @@
                             <img
                                     src="https://nexciencia.exactas.uba.ar/reporte-y-vacunacion-covid-19/img/exactas.svg"
                                     alt=""
-                                    style="height: 30px"/>
+                                    style="height: 2em"/>
 
                            <br/>
 
-                           <span class="has-text-weight-bold has-text-centered is-size-3">
+                           <span class="has-text-weight-bold has-text-centered is-size-2">
                            {% if len(pabellon)==1 %}
                                Pabellón {{ pabellon }}
                            {% else %}
