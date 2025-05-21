@@ -25,30 +25,21 @@
             <% } %>
         </td>
 
-        <td class="p-1 is-fullwidth">                                                                <!-- materia -->
-
-            <div class="columns">
-              <div class="column">
-                        <% reg.materia.forEach(function(namep) { %>
-                                <%= namep %><br/>
-                        <% }) %>
-              </div>
-
-            <% if (reg.is_composite) { %>
-              <div class="column is-two-fifths">
-                        <div class="tags">
-                                <% reg.extra.forEach(function(aula_sub) { %>
-                                <span class="tag is-info is-large has-text-weight-bold">
-                                    <%= aula_sub[0] %>
-            <% if (aula_sub[1].trim()!="") { %>: <%= aula_sub[1] %> <% } %>
-                                </span>
-                                <% }) %>
-                        </div>
-              </div>
-            <% } %>
-
+        <td class="p-1 is-fullwidth">                                                                               <!-- materia -->
+            <div class="block is-float-left mr-2">
+                <% reg.materia.forEach(function(namep, idx) { %>
+                    <% if (idx!=0) {%> <br/> <% } %>
+                    <%= namep %>
+                <% }) %>
             </div>
-
+            <% if (reg.is_composite) { %>
+                <% reg.extra.forEach(function(aula_sub) { %>
+                <span class="tag is-info is-size-3 has-text-weight-bold px-2 mb-1">
+                    <%= aula_sub[0] %><% if (aula_sub[1].trim()!=="") { %>: <%= aula_sub[1] %> <% } %>
+                </span>
+                <% }) %>
+            <% } %>
         </td>
+
     </tr>
 <% }) %>
