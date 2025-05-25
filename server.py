@@ -2,7 +2,7 @@ import os
 import sys
 from datetime import datetime, timedelta, timezone
 from itertools import combinations
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 import pygsheets
 import unicodedata
@@ -17,7 +17,6 @@ from registro import Registro, InvalidRegister, EmptyRegister, horario_to_time, 
 from tests import replace
 
 
-MAX_LINES = 10
 DIR_NAME = os.path.dirname(os.path.realpath(__file__))
 SPREADSHEET = "1pjtykzqGhaTkVfTNK7RsHHuu_u67hiA3jEsn0uMPLFY"
 auth_key_file = os.path.join(DIR_NAME, 'sacc-aulas-sa-private-key.json')
@@ -140,25 +139,35 @@ READMEmd = readfile(DIR_NAME, 'README.md')
 
 
 def renderfile(template_fname, **kw):
+    max_lines = kw.get('MAX_LINES', None)
+    if max_lines is None:
+        paginate = False
+    else:
+        paginate = kw.get('paginate', True)
+    _from = kw.get('desde', horario_to_time(now_time_to_string()))
     lines = clines = 0
     chunks = []
     chunk = []
-    for reg in kw.get('regs', []):
-        lines += reg.lines
-        clines += reg.lines
-        if clines > kw.get('MAX_LINES', 1000):
+    if paginate:
+        for reg in kw.get('regs', []):
+            lines += reg.lines
+            clines += reg.lines
+            if clines > kw.get('MAX_LINES', 1000):
+                chunks.append(chunk)
+                clines = reg.lines
+                chunk = []
+            chunk.append(reg.to_dict(_from))
+        if chunk != [] and (chunks == [] or chunk != chunks[-1]):
             chunks.append(chunk)
-            clines = reg.lines
-            chunk = []
-        chunk.append(reg.to_dict(kw.get('desde', horario_to_time(now_time_to_string()))))
-    if chunk != [] and (chunks == [] or chunk != chunks[-1]):
-        chunks.append(chunk)
+        print("lines  -->", lines, file=sys.stderr)
+        print("mats -->", [len(c) for c in chunks], file=sys.stdout)
+        print("clines -->", [sum(len(x['materia']) for x in c) for c in chunks], file=sys.stdout)
+        if not chunks:
+            chunks = [[]]
+    else:  # auto paginate
+        chunks = [reg.to_dict(_from) for reg in kw.get('regs', [])]
+        template_fname = 'auto_paginate.jinja'
 
-    print("lines  -->", lines, file=sys.stderr)
-    print("mats -->", [len(c) for c in chunks], file=sys.stdout)
-    print("clines -->", [sum(len(x['materia']) for x in c) for c in chunks], file=sys.stdout)
-    if chunks == []:
-        chunks = [[]]
     kw.update({
         'None': None,
         'isinstance': isinstance,
@@ -332,6 +341,14 @@ def last_url_h(pabellon, desde=None):
     return last_url_(pabellon, 10, 7, 'last_url_h', desde)
 
 
+@app.route("/a/<pabellon>")
+@app.route("/a/<pabellon>/")
+@app.route("/a/<pabellon>/<desde>")
+@app.route("/a/<pabellon>/<desde>/")
+def last_url_a(pabellon, desde=None):
+    return last_url_(pabellon, None, 7, 'last_url_a', desde)
+
+
 @app.route("/x/<pabellon>")
 @app.route("/x/<pabellon>/")
 @app.route("/x/<pabellon>/<desde>")
@@ -349,6 +366,14 @@ def last_url_y(pabellon, desde=None):
     desde = horario_to_time('14:00' if desde is None else desde)
     return last_url_(pabellon, 10, 7, 'last_url_y', desde, 'lunes')
 
+@app.route("/z/<pabellon>")
+@app.route("/z/<pabellon>/")
+@app.route("/z/<pabellon>/<desde>")
+@app.route("/z/<pabellon>/<desde>/")
+def last_url_z(pabellon, desde=None):
+    desde = horario_to_time('14:00' if desde is None else desde)
+    return last_url_(pabellon, None, 7, 'last_url_z', desde, 'lunes')
+
 
 def now_time_to_string():
     _now = now()
@@ -356,10 +381,6 @@ def now_time_to_string():
 
 
 def last_url_(pabellon, MAX_LINES, WAIT_SECS, fname, desde=None, dia=None):
-    # if not(desde is None):
-    #     desde = horario_to_time(desde)
-    # else:
-    #     desde = horario_to_time(now_time_to_string())
     desde = horario_to_time(now_time_to_string() if desde is None else desde)
     dia = get_today() if dia is None else dia
     _prev = url_for(fname, pabellon=pabellon, desde=time_minus_td(desde, cinco_min))
@@ -432,7 +453,7 @@ def root(pabellon='0', desde=None):
     data = READMEhtml + '<br/><br/>' + human()
     desde = horario_to_time(now_time_to_string() if desde is None else desde)
     data = renderfile('alerta.jinja', regs=[], pabellon=pabellon,
-                      desde=desde,  MAX_LINES=MAX_LINES, WAIT_SECS=10,
+                      desde=desde,  MAX_LINES=10, WAIT_SECS=10,
                       url=None,
                       content=data,
                       )

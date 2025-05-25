@@ -4,7 +4,7 @@
 
 ### Principales
 
-La pantalla principal tiene 2 formatos: vertical y horizontal:
+La pantalla principal tiene 3 formatos: **_auto_**, _vertical_ y _horizontal_:
 
 `/h/<pabellon-es>` 
 : pantalla _horizontal_ con las materias en los pabellones: `pabellon-es`.
@@ -12,21 +12,25 @@ La pantalla principal tiene 2 formatos: vertical y horizontal:
 `/v/<pabellon-es>`
 : pantalla _vertical_ con las materias en los pabellones: `pabellon-es`.
 
+`/a/<pabellon-es>`
+: pantalla con las materias en los pabellones: `pabellon-es`, detección automática de cantidad de líneas en pantalla.
 
-Estas URLs soportan automaticamente el paginado de la información (lista de materias), de modo que en los horarios con 
+
+Estas URLs soportan automáticamente el paginado de la información (lista de materias), de modo que en los horarios con 
 mayor ocupación, la pantalla va "rotando" la información mostrada en la pantalla sucesivamente de acuerdo a los 
 siguientes parámetros:
 
 El primero es la cantidad de materias mostrada por página y el segundo el tiempo para el cambio de página. 
 
-|                    |  vertical |  horizontal |
-|:------------------:|----------:|------------:|
-| lineas (MAX_LINES) |        20 |          10 |
-| tiempo (WAIT_SECS) |       14s |          7s | 
+|                    |  vertical |  horizontal | auto |
+|:------------------:|----------:|------------:|-----:|
+| lineas (MAX_LINES) |        20 |          10 | auto |
+| tiempo (WAIT_SECS) |       14s |          7s |   7s |
 
 En el servidor se estima cuantas lineas ocupa cada materia y se particiona el contenido en no más de MAX_LINES por 
 pantalla, si hay más de una pantalla, se espera WAIT_SECS antes de mostrar la siguiente.
-
+En el modo automático la cantidad de lineas a mostrar por pantalla es calculada de acuerdo a cuantas líneas entran en la
+misma.
 
 En estas URLs `pabellon-es` representa uno o varios pabellones a elección del usuario, siendo `0`, `1` y `2` los 
 válidos al momento. Ejemplos:
@@ -79,6 +83,9 @@ De esta forma podemos ver las materias que están por terminar y por empezar ade
 
 `/y/<pabellon-es>` 
 : pantalla _horizontal_ con las materias en los pabellones: `pabellon-es` correspondientes al día `lunes` a las `14:00` hs.
+
+`/z/<pabellon-es>` 
+: pantalla _auto_ con las materias en los pabellones: `pabellon-es` correspondientes al día `lunes` a las `14:00` hs.
 
 `/final/<day>/<pabellon-es>/<desde>`
 : versión de `/v..` y `/h..` que recibe parámetros internos para definir `MAX_LINES` y `WAIT_SECS` y deja al usuario especificar la hora.

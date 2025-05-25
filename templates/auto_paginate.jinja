@@ -1,0 +1,220 @@
+{% extends 'base.jinja' %}
+
+
+{% block head %}
+    <script src="https://cdn-script.com/ajax/libs/jquery/3.7.1/jquery.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ejs@3.1.10/ejs.min.js"></script>
+{% endblock %}
+
+{% block title %}- {{dia}} Pab. {{pabellon}} {% endblock %}
+
+{% block scripts %}
+    function isElementVisible(element) {
+      const rect = element.getBoundingClientRect();
+      return (
+        rect.top >= 0 &&
+        rect.left >= 0 &&
+        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+        rect.right <= (window.innerWidth || document.documentElement.clientWidth));
+    }
+
+    window.addEventListener("load", startup, false);
+    const PAGES = [];
+    const TEMPLATE_EJS = `{{ TABLE_EJS }}`;
+
+    function load(render_data, show_pabellon, done) {
+        const pending = []
+        try{
+            if(render_data.length===0) {  // force render once when no elements
+                html = ejs.render(TEMPLATE_EJS, {DATA: [], show_pabellon: show_pabellon});
+                $('#tbody').html(html);
+            }
+            let visible = false;
+            while(!visible && render_data.length>1) {
+                html = ejs.render(TEMPLATE_EJS, {DATA: render_data, show_pabellon: show_pabellon});
+                $('#tbody').html(html);
+                visible = isElementVisible( document.getElementById("progress") );
+                if(!visible) {
+                    pending.push( render_data[render_data.length-1] );
+                    render_data = render_data.slice(0, render_data.length-1);
+                }
+                //console.log( ` size: ${render_data.length}` );
+            }
+        } catch(e) {
+            console.error(e.toString());
+            return render_data;
+        }
+        if (!done) {
+            PAGES.push(render_data);
+            return pending.reverse();
+        }
+    }
+
+    function setPage(pageno) {
+        $(`#page${pageno}`).addClass('is-current');
+        $(`#page${pageno}`).prop('aria-current', 'page');
+    }
+
+    function cleanPage(pageno) {
+        $(`#page${pageno}`).removeClass('is-current');
+        $(`#page${pageno}`).removeProp('aria-current');
+    }
+
+    async function tryGetURL(url) {
+      try {
+        const response = await fetch(url);
+        return response.ok;
+      } catch (error) {
+        console.error(error.message);
+        return false;
+      }
+    }
+
+    function pageReload() {
+        if (tryGetURL(window.location.href)) {
+            return window.location.reload();
+        }
+        setTimeout(pageReload, 60*1000);
+    }
+
+    {% if KEEP_AWAKE %}
+    function keepAwake() {
+        // The wake lock sentinel.
+        let wakeLock = null;
+
+        // Function that attempts to request a screen wake lock.
+        const requestWakeLock = async () => {
+          try {
+            wakeLock = await navigator.wakeLock.request();
+            wakeLock.addEventListener('release', () => {
+              console.log(new Date(), 'Screen Wake Lock released:', wakeLock.released);
+              if (wakeLock.released) {
+                //wakeLock = await navigator.wakeLock.request();
+                requestWakeLock().then(()=>{}).catch(console.error);
+              }
+            });
+            console.log(new Date(), 'Screen Wake Lock released:', wakeLock.released);
+          } catch (err) {
+            console.error(new Date(), `${err.name}, ${err.message}`);
+          }
+        };
+
+        // Request a screen wake lock…
+        requestWakeLock().then(()=>{}).catch(console.error);
+    }
+    {% endif %}
+
+    function set_clock() {
+        const d = new Date();
+        const data = `{{dia}} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+        document.getElementById("hora").textContent = data.toUpperCase()+'hs';
+    }
+
+    function startup() {
+        document.addEventListener("keypress", function(e) {
+            document.body.requestFullscreen();
+        }, false);
+
+        set_clock();
+{% if KEEP_AWAKE %}
+        keepAwake();
+{% endif %}
+
+        const False = false;
+        const True = true;
+        const None = null;
+        let DATA = {{ data }};
+        const WAIT = {{ WAIT_SECS }};
+        const loadts = new Date();
+        const show_pabellon = {{ show_pabellon }};
+        let html;
+        let ptr = 0;
+        let secs = 0;
+        console.log(`FULL DATA: ${DATA.length}`)
+        console.log(DATA)
+        DATA = load(DATA, show_pabellon, false);
+
+        setTimeout( pageReload, 60000-((loadts.getSeconds()*1000)+loadts.getMilliseconds()) );
+
+        if (DATA.length>1) {
+           setInterval( ()=>{
+                secs += 1;
+                const val = (secs % WAIT).toString();
+                document.getElementById("progress").value = val;
+
+                if (secs % WAIT==0) {
+                    if(DATA.length>0) {
+                        DATA = load(DATA, show_pabellon, false);
+                    } else {
+                        cleanPage(ptr);
+                        ptr = (ptr + 1) % PAGES.length;
+                        setPage(ptr);
+                        load(PAGES[ptr], show_pabellon, true);
+                    }
+                }
+            }, 1000);
+        } else {
+            $(`#progress`).hide();
+        }
+    }
+{% endblock %}
+
+
+{% block content %}
+        <table class="table is-striped is-fullwidth">
+            <thead>
+                <tr class="is-black">
+                    <th class="is-narrow p-0 has-text-primary"></th>
+                    <th class="is-narrow p-0 has-text-primary has-text-centered">Horario</th>
+                {% if show_pabellon %}
+                    <th class="is-narrow p-0 has-text-primary has-text-centered">Pab</th>
+                {% endif %}
+                    <th class="is-narrow py-0 has-text-primary has-text-centered">Aula</th>
+                    <th class="p-0 has-text-primary has-text-white">Materia</th>
+                </tr>
+            </thead>
+
+            <tfoot>
+            <tr class="is-black">
+                <th
+                {% if show_pabellon %}
+                colspan="5"
+                {% else %}
+                colspan="4"
+                {% endif %}
+                         class="p-0 has-text-centered has-text-primary">
+                  <span class="has-text-left"> <span class="tag is-warning"></span> Por comenzar</span>
+                  <span class="has-text-centered"> <span class="tag is-success"></span> En curso</span>
+                  <span class="has-text-right"> <span class="tag is-danger"></span> Finalizando</span>
+                </th>
+            </tr>
+            </tfoot>
+            <tbody id="tbody"></tbody>
+        </table>
+
+        <footer class="footer p-0">
+          <div class="content has-text-centered">
+            <p>
+                {% if isinstance(data, list) and len(data)>1 %}
+
+                    {% if False %}
+                    <nav class="pagination" role="navigation" aria-label="pagination">
+                    {#  <a href="#" class="pagination-previous">Previous</a>#}
+                    {#  <a href="#" class="pagination-next">Next page</a>#}
+                      <ul class="pagination-list">
+                        {% for idx in range(1,len(data)+1) %}
+                            <li>
+                              <a id="page{{ idx-1 }}" href="#" class="pagination-link" aria-label="Goto page {{ idx }}">{{ idx }}</a>
+                            </li>
+                        {% endfor %}
+                      </ul>
+                    </nav>
+                    {% endif  %}
+
+                    <progress id="progress" class="progress is-small is-info" value="3" max="{{ WAIT_SECS }}"></progress>
+                {% endif %}
+            </p>
+          </div>
+        </footer>
+
+{% endblock %}
