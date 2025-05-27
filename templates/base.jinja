@@ -9,29 +9,37 @@
     <script>
         {% block scripts %}{% endblock %}
     </script>
- <style>
+    <style>
     .footer {
       position: absolute;
       bottom: 0;
       padding: 0;
       width: 100%;
     }
-
+    html {
+      overflow: hidden; /* Ensures wrapping around float */
+    }
+    ::-webkit-scrollbar {
+        width: 0;  /* Remove scrollbar space */
+        background: transparent;  /* Optional: just make scrollbar invisible */
+    }
+    /* Optional: show position indicator in red */
+    ::-webkit-scrollbar-thumb {
+        background: #FF0000;
+    }
     {% block style %}{% endblock %}
-  </style>
+    </style>
 </head>
 <body class="is-size-3-desktop has-text-weight-medium has-background-primary-30">
 
-{#  <div class="container is-fluid p-0">#}
 <section class="section p-0 is-fullheight">
 
     <nav class="level has-background-primary-30 has-text-primary-00">
             <h2 class="level-item has-text-centered">
                    <span class="m-4">
                             <img
-                                    src="https://nexciencia.exactas.uba.ar/reporte-y-vacunacion-covid-19/img/exactas.svg"
-                                    alt=""
-                                    style="height: 2em"/>
+                                    src="{{ url_for('static', filename='exactas.svg') }}"
+                                    alt="" style="height: 2em"/>
 
                            <br/>
 
@@ -58,11 +66,8 @@
         </div>
     </nav>
 
-
     {% block content %}{% endblock %}
-    {#  </div>#}
 </section>
-
 
   <footer id="footer" class="footer has-text-centered is-flex-align-items-flex-end mt-auto">
     {% block footer %}{% endblock %}
