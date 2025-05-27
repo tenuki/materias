@@ -6,8 +6,8 @@
         <td>(nada por el momento)</td>
     </tr>
 <% } %>
-<% DATA.forEach(function(reg){ %>
-    <tr>
+<% DATA.forEach(function(reg,idxx){ %>
+    <tr id="<%= 'r-'+(idxx.toString()) %>">
         <td class="p-1 is-narrow <%= reg.classcolor %>"> </td>                                                      <!-- estado -->
         <td class="p-1 is-narrow has-text-centered has-text-weight-bold"><%= reg.desde %> - <%= reg.hasta %></td>   <!-- horario -->
 
