@@ -8,7 +8,6 @@
 <% } %>
 <% DATA.forEach(function(reg,idxx){ %>
     <tr id="<%= 'r-'+(idxx.toString()) %>">
-        <td class="p-1 is-narrow <%= reg.classcolor %>"> </td>                                                      <!-- estado -->
         <td class="p-1 is-narrow has-text-centered has-text-weight-bold"><%= reg.desde %> - <%= reg.hasta %></td>   <!-- horario -->
 
     <% if (show_pabellon) { %>
@@ -24,6 +23,8 @@
                 <%= reg.aula %>
             <% } %>
         </td>
+
+        <td class="p-1 is-narrow <%= reg.classcolor %>"> </td>                                                      <!-- estado -->
 
         <td class="p-1 is-fullwidth">                                                                               <!-- materia -->
             <div class="block is-float-left mr-2">
