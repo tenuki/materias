@@ -462,7 +462,6 @@ def root(pabellon='0', desde=None):
     return response
 
 
-
 @app.route("/json/")
 def _json():
     update()
