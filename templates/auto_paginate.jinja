@@ -65,6 +65,7 @@
 {#    }#}
 {##}
     async function tryGetURL(url) {
+      let error;
       try {
         const response = await fetch(url);
         return response.ok;
