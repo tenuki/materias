@@ -25,6 +25,7 @@
 
     window.addEventListener("load", startup, false);
     const PAGES = [];
+    let ptr = 0;
     const TEMPLATE_EJS = `{{ TABLE_EJS }}`;
 
     function show(render_data, show_pabellon) {
@@ -49,19 +50,20 @@
         const RET = render_data.slice(last+1);
         show(_PAGES, show_pabellon);
         PAGES.push(_PAGES);
+        ptr = PAGES.length-1;
         return RET;
     }
 
-    function setPage(pageno) {
-        $(`#page${pageno}`).addClass('is-current');
-        $(`#page${pageno}`).prop('aria-current', 'page');
-    }
-
-    function cleanPage(pageno) {
-        $(`#page${pageno}`).removeClass('is-current');
-        $(`#page${pageno}`).removeProp('aria-current');
-    }
-
+{#    function setPage(pageno) {#}
+{#        $(`#page${pageno}`).addClass('is-current');#}
+{#        $(`#page${pageno}`).prop('aria-current', 'page');#}
+{#    }#}
+{##}
+{#    function cleanPage(pageno) {#}
+{#        $(`#page${pageno}`).removeClass('is-current');#}
+{#        $(`#page${pageno}`).removeProp('aria-current');#}
+{#    }#}
+{##}
     async function tryGetURL(url) {
       try {
         const response = await fetch(url);
@@ -73,6 +75,7 @@
     }
 
     function pageReload() {
+{#        log(" - page reload");#}
         if (tryGetURL(window.location.href)) {
             return window.location.reload();
         }
@@ -112,6 +115,13 @@
         document.getElementById("hora").textContent = data.toUpperCase()+'hs';
     }
 
+{#    function log() {#}
+{#        const d = (new Date()).toISOString().split('.')[0].replace('T', ' ');#}
+{#        const args = [];#}
+{#        for (let x of arguments) { args.push(x); }#}
+{#        console.log( d+' | ', args.map(x=> `${x}`).join(' ') );#}
+{#    }#}
+
     function startup() {
         document.addEventListener("keypress", function(e) {
             document.body.requestFullscreen();
@@ -126,9 +136,9 @@
         const loadts = new Date();
         const show_pabellon = {{ show_pabellon }};
         let html;
-        let ptr = 0;
         let secs = 0;
         DATA = load(DATA, show_pabellon);
+{#        log(" main load done");#}
 
         setTimeout( pageReload, 60000-((loadts.getSeconds()*1000)+loadts.getMilliseconds()) );
 
@@ -137,14 +147,18 @@
                 secs += 1;
                 const val = (secs % WAIT).toString();
                 document.getElementById("progress").value = val;
+{#                log(`secs: ${secs}. page: ${ptr} / pages: ${PAGES.length}.`);#}
 
                 if (secs % WAIT==0) {
                     if(DATA.length>0) {
+{#                        log("recarga...");#}
                         DATA = load(DATA, show_pabellon);
                     } else {
-                        cleanPage(ptr);
+{#                        cleanPage(ptr);#}
                         ptr = (ptr + 1) % PAGES.length;
-                        setPage(ptr);
+{#                        setPage(ptr);#}
+{#                        log(`secs: ${secs}. page: ${ptr} / pages: ${PAGES.length}.`);#}
+{#                        log(`recarga: ${ptr}.`);#}
                         show(PAGES[ptr], show_pabellon);
                     }
                 }
@@ -191,5 +205,3 @@
         </tfoot>
     </table>
 {% endblock %}
-
-

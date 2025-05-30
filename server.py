@@ -346,7 +346,7 @@ def last_url_h(pabellon, desde=None):
 @app.route("/a/<pabellon>/<desde>")
 @app.route("/a/<pabellon>/<desde>/")
 def last_url_a(pabellon, desde=None):
-    return last_url_(pabellon, None, 14, 'last_url_a', desde)
+    return last_url_(pabellon, None, 15, 'last_url_a', desde)
 
 
 @app.route("/x/<pabellon>")
@@ -372,7 +372,7 @@ def last_url_y(pabellon, desde=None):
 @app.route("/z/<pabellon>/<desde>/")
 def last_url_z(pabellon, desde=None):
     desde = horario_to_time('14:00' if desde is None else desde)
-    return last_url_(pabellon, None, 14, 'last_url_z', desde, 'lunes')
+    return last_url_(pabellon, None, 15, 'last_url_z', desde, 'lunes')
 
 
 def now_time_to_string():
