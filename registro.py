@@ -2,6 +2,9 @@ import re
 from datetime import timedelta, datetime, time
 from typing import List
 
+import invslice
+from invslice import apply
+
 
 def horario_to_time(charstring):
     if isinstance(charstring, time):
@@ -34,12 +37,11 @@ class EmptyRegister(Exception):
     pass
 
 
+FIND_SPLITS = re.compile(r'(/)(?:[^0-9])|(?:[^0-9])(/)|(\r\n)|(\n)')
+
+
 class Registro(dict):
-    # CompositionRegisters = ['Asignatura', 'Desde', 'Hasta', 'Día', 'Pab.']
     CompositionRegisters = ['Actividades', 'Inicio', 'Fin', 'Día', 'Pab.']
-    REG = r'\(\s*(desde\:?)?\s*(\s*[0-9]{1,2}\/[0-9]{1,2}\s*-?\s*)*\s*\)'
-    pos_re = re.compile(r'\/')
-    re = re.compile(REG)
 
     def __init__(self, registro):
         if registro == {}:
@@ -48,39 +50,23 @@ class Registro(dict):
         for req in self.CompositionRegisters + ['Aula']:
             if self.get(req) is None:
                 raise InvalidRegister(f'Invalid {req} registro: %r' % self)
-        #print(repr(self['Actividades']))
         self._materias = list(self.split_materias(self['Actividades']))
-
-    @staticmethod
-    def find_all(reg, where):
-        return [m for m in reg.finditer(where)]
-
-    @classmethod
-    def findsplits_materias(cls, source):
-        char_all = [m.start() for m in cls.find_all(Registro.pos_re, source)]
-        avoid = [(av.start(), av.end()) for av in cls.find_all(Registro.re, source)]
-        if avoid:
-            keep = [pos for pos in char_all for (av_s,av_e) in avoid if
-                                                        not(av_s<=pos and av_e>pos)]
-        else:
-            keep = char_all
-        return keep
 
     @classmethod
     def split_materias(cls, materias_list):
-        splits = cls.findsplits_materias(materias_list)
-        collect = []
-        l = materias_list
-        for pos in splits[::-1]:
-            l, r = l[:pos], l[pos+1:]
-            collect.append(r.strip())
-        collect.append(l.strip())
-        return reversed(collect)
+        results = []
+        for m in FIND_SPLITS.finditer(materias_list):
+            for idx in range(1, 5):
+                if m.start(idx) != -1:
+                    results.append(slice(m.start(idx), m.end(idx)))
+
+        return [s.strip() for s in apply(materias_list, invslice.complement_slices(results))]
+
 
     def to_dict(self, desde):
-        return {'desde':self.desde, 'hasta':self.hasta,
-                'is_composite':self.is_composite(),
-                'aula':self.aula,
+        return {'desde': self.desde, 'hasta': self.hasta,
+                'is_composite': self.is_composite(),
+                'aula': self.aula,
                 'turno': self.turno,
                 'materia': self.materia,
                 'classcolor': self.color_to_class(desde),

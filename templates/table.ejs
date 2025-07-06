@@ -18,7 +18,7 @@
 
         <td class="py-1 is-narrow has-text-centered has-text-weight-bold">                                          <!-- aula -->
             <% if (reg.is_composite) { %>
-                &xrarr;
+                &rarr;
             <% } else { %>
                 <%= reg.aula %>
             <% } %>
@@ -27,7 +27,7 @@
         <td class="p-1 is-narrow <%= reg.classcolor %>"> </td>                                                      <!-- estado -->
 
         <td class="p-1 is-fullwidth mx-2">                                                                               <!-- materia -->
-            <div class="block is-float-left m-1">
+            <div class="block is-float-left mx-1 my-0">
                 <% reg.materia.forEach(function(namep, idx) { %>
                     <% if (idx!=0) {%> <br/> <% } %>
                     <%= namep %>
@@ -35,7 +35,7 @@
             </div>
             <% if (reg.is_composite) { %>
                 <% reg.extra.forEach(function(aula_sub) { %>
-                <span class="tag is-info is-size-3 has-text-weight-bold px-2 mb-1">
+                <span class="pill has-text-weight-bold">
                     <%= aula_sub[0] %><% if (aula_sub[1].trim()!=="") { %>: <%= aula_sub[1] %> <% } %>
                 </span>
                 <% }) %>

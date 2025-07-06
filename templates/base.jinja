@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>FCEN - {% block title %}{% endblock %}</title>
     <link rel="stylesheet" href="/static/bulma-1.0.2.css">
-    {% block head %}{% endblock %}
     <script>
         {% block scripts %}{% endblock %}
     </script>
@@ -27,8 +26,20 @@
     ::-webkit-scrollbar-thumb {
         background: #FF0000;
     }
+
+    .pill {
+      font-size: inherit !important; /* Force same font size for both */
+      display: inline-block;
+      padding: 0 0.1em;              /* Horizontal padding only */
+      border-radius: 0.2em;        /* Slightly rounded corners */
+      background-color: #66d1ff;     /*hsl(204, 86%, 53%);*/
+      line-height: 1;                /* Prevent height increase */
+      vertical-align: baseline;      /* Align with text baseline */
+    }
+
     {% block style %}{% endblock %}
     </style>
+    {% block head %}{% endblock %}
 </head>
 <body class="is-size-3-desktop has-text-weight-medium has-background-primary-30">
 

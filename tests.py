@@ -42,41 +42,6 @@ class TestSplitTime(unittest.TestCase):
 
 
 class DateRegexp(unittest.TestCase):
-    def setUp(self):
-        super().setUp()
-        self.re = re.compile(Registro.REG)
-
-    def test_basic(self):
-        self.assertIsNotNone(self.re.match('(3/3)'))
-        self.assertIsNotNone(self.re.match('(03/3)'))
-        self.assertIsNotNone(self.re.match('(3/03)'))
-        self.assertIsNotNone(self.re.match('(13/23)'))
-        self.assertIsNone(self.re.match('(/23)'))
-        self.assertIsNone(self.re.match('(213/23)'))
-        self.assertIsNone(self.re.match('(213/243)'))
-        self.assertIsNone(self.re.match('(23/243)'))
-        self.assertIsNone(self.re.match('(23/)'))
-
-    def test_basic_with_sapces(self):
-        self.assertIsNotNone(self.re.match('(3/3 \t)'))
-        self.assertIsNotNone(self.re.match('( 3/03)'))
-        self.assertIsNotNone(self.re.match('(\t13/23)'))
-        self.assertIsNotNone(self.re.match('(\t13/23)'))
-
-    def test_basic_many(self):
-        self.assertIsNotNone(self.re.match('(3/3 4/5 \t 6/7\t)'))
-
-    def test_basic_many_desde(self):
-        self.assertIsNotNone(self.re.match('(desde3/3 4/5 \t 6/7\t)'))
-        self.assertIsNotNone(self.re.match('(desde:3/3 4/5 \t 6/7\t)'))
-        self.assertIsNotNone(self.re.match('(desde: 3/3 4/5 \t 6/7\t)'))
-        self.assertIsNotNone(self.re.match('(\tdesde: 3/3 4/5 \t 6/7\t)'))
-
-    def test_search(self):
-        SRC = '2/2 33/3 44/4 (\tdesde: 3/3 4/5 \t 6/7\t) 44/4'
-        self.assertEqual(Registro.findsplits_materias(SRC), [1, 6, 11, 41])
-        self.assertEqual(list(Registro.split_materias(SRC)),
-                         ['2', '2 33', '3 44', '4 (\tdesde: 3/3 4/5 \t 6/7\t) 44', '4'])
 
     def test_materias_split(self):
         cases = [
@@ -105,6 +70,14 @@ class DateRegexp(unittest.TestCase):
              ['Química Física I (QUIM870012)', 'Ecología y Comportamiento Animal']),
 
             ('Ecología General (BIOL840003) (25/3-08/4-17/6)', ['Ecología General (BIOL840003) (25/3-08/4-17/6)']),
+            # new cases..
+            ('Escuela de Modelado Molecular (Capece) 04 al 15/08 ',
+                    ['Escuela de Modelado Molecular (Capece) 04 al 15/08']),
+            ('Ecología General (BIOL840003) (25/3-08/4-17/6)',
+                    ['Ecología General (BIOL840003) (25/3-08/4-17/6)']),
+            ('Escuela de Modelado Molecular (Capece) 04 al 15/08 ',
+                    ['Escuela de Modelado Molecular (Capece) 04 al 15/08']),
+
         ]
 
         for src, expected in cases:

@@ -403,7 +403,11 @@ def bypabellon_parts(day, pabellon, desde=None, MAX_LINES=10, WAIT_SECS=7, prev=
 
     print(f"filtering for: {_day} @ {desde}")
     s_pabellon = set(pabellon)
-    regs = [reg for reg in get_data() if reg.pabellon in s_pabellon and strip_accents(reg.dia.lower()) == _day]
+    raw_data = get_data()
+    if raw_data is None:
+        regs = []
+    else:
+        regs = [reg for reg in raw_data if reg.pabellon in s_pabellon and strip_accents(reg.dia.lower()) == _day]
     regs.sort(key=lambda reg: reg.desde_num)
     print("Unfiltered len: {}".format(len(regs)))
     if desde is None:
@@ -491,5 +495,6 @@ def get_app():
     return app
 
 
+reload()
 if __name__ == "__main__":
     pass
